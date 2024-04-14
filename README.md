@@ -32,3 +32,8 @@ To increase the difficulty of a user with a suspicious C library gaining control
 - No one using this library would ever have to manage `liblzma`'s internal state, nor will `liblzma` be able to "see" your data types of your own code except for the []byte stream of data to be compressed/decompressed.
 
 More detail about this technique is [over here](https://gist.github.com/christoofar/880b4bcf3018f4681bb71bfdf1c16a6a).
+
+## credits
+This work is based off the direct `liblzma` library stubs [published](https://github.com/jamespfennell/xz) by [@jamespfennell](https://github.com/jamespfennell/xz) under the MIT license.  `liblzma` is the published work of [Lasse Collin](https://git.tukaani.org/?p=xz.git;a=blob_plain;f=AUTHORS;hb=fcbd0d199933a69713cb293cbd7409a757d854cd) and [many others](https://git.tukaani.org/?p=xz.git;a=blob;f=THANKS;h=7d2d4fe82ad8ab14161d1bacd8ef3437fe51634d;hb=fcbd0d199933a69713cb293cbd7409a757d854cd) and is published under the 0BSD software license.
+
+`safexz` is the published work of Christopher Sawyer and is made available under the MIT license.
