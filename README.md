@@ -1,5 +1,5 @@
 # safexz
-(in development)  A safe Go interface to liblzma, the "xz" compression library.
+(in development)  A safe Go interface to `liblzma`, the "xz" compression library.
 
 This is a Go package for compression in the xz / lzma format that provides a safer way to call `liblzma` for common use cases without the fear of type-safety issues and utilizes Go's goroutines to protect your project from [unforseen control hijacks](https://research.swtch.com/xz-timeline) from the 5.6.0 and 5.6.1 versions of `liblzma`
 
