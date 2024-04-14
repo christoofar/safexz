@@ -8,6 +8,15 @@ This is a Go package for compression in the xz / lzma format that provides a saf
 
 As Go itself is much newer, I am to maintain compatibility `$TODO: backportage tests :-)`.
 
+## xz backdoor
+Late March 2024 [CVE-2024-3094](https://research.swtch.com/xz-timeline) was issued against the `liblzma` compression library for a [supply chain attack](https://www.crowdstrike.com/cybersecurity-101/cyberattacks/supply-chain-attacks/).  That episode began with the attacker gaining maintainer role on the FOSS project in a 2 year campaign in inject a highly-complicated and stealty [backdoor](https://en.wikipedia.org/wiki/Backdoor_(computing)) into the software by injecting its own pre-compiled and ready-to-be-linked `.o` file into the build stream.
+
+Since then, `systemd` and OpenSSH, the two primary projects the `xz` backdoor exploited to gain access to `sshd` have since made code changes that remove `liblzma.so` from static linking.
+
+I'm not a firm believer that `dlopen()` is really much of a [cure](https://github.com/golang/go/issues/58548) than it is a quick excuse to ignore your supply chain.  And still: dynamic linking in software is frought with other problems, one of which is security.
+
+I am pinning my version of `lzma` to versions as [Lasse Collins](https://tukaani.org/contact.html) refactors out the work of Jia Tan.  Similarly, there have been recent commits by Sam James [@thesamesam](https://github.com/thesamesam).   The software is healing, the backdoor in `xz` is dead, and by the time you've found this project it's ready for production use.
+
 ## limited but easy interface
 Rather than expose the call-chain dependencies of `lzma` directly to you, a simpler Go interface is provided for your integration projects.  The interface breaks down your calls into simpler `chan` transfers to `lzma`.
 
