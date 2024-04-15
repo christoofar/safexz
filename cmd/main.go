@@ -29,8 +29,8 @@ package main
 
 #include <stdlib.h>
 #include <string.h>
-#include "internal/lzma/src/liblzma/api/lzma.h"
-#include "internal/common/sysdefs.h"
+#include "../internal/lzma/src/liblzma/api/lzma.h"
+#include "../internal/common/sysdefs.h"
 
 // liblzma requires that the initialization of the stream be done with a C macro, which CGo cannot see.
 // This function will not be called when this package init(), so it is safe to define it here.
@@ -51,6 +51,8 @@ import (
 	"os"
 	"runtime"
 	"unsafe"
+
+	internal "github.com/christoofar/safexz/internal/common"
 )
 
 // This is a type that is used to pass a buffer to C code. It is not safe to use from the top code.
@@ -174,24 +176,24 @@ func FreeLZMA(lzmaStream *lzmaStream) {
 
 // The multi-threaded LZMA encoder.  Multi-threading doesn't do all that much for compression, but when
 // you set compression to lower levels it can speed up the process.
-func Encoder(stream *lzmaStream, preset int) Return {
+func Encoder(stream *lzmaStream, preset int) internal.Return {
 	//Return(C.lzma_easy_encoder_mt(&stream.cStream, C.uint(preset), C.LZMA_CHECK_CRC64), C.uint(2))
 	// Sets an LZMA stream up for an encoding job.
 	options := C.get_multi_options()
 	options.preset = C.uint(preset)
 	options.threads = C.uint(runtime.NumCPU() / 2) // Use half the number of CPUs for encoding
-	return Return(C.lzma_stream_encoder_mt(&stream.cStream, &options))
+	return internal.Return(C.lzma_stream_encoder_mt(&stream.cStream, &options))
 }
 
 // Sets an LZMA stream up for a decoding job.
-func Decoder(stream *lzmaStream, memlimit uint64) Return {
-	return Return(C.lzma_stream_decoder(&stream.cStream, C.uint64_t(memlimit), C.LZMA_TELL_UNSUPPORTED_CHECK))
+func Decoder(stream *lzmaStream, memlimit uint64) internal.Return {
+	return internal.Return(C.lzma_stream_decoder(&stream.cStream, C.uint64_t(memlimit), C.LZMA_TELL_UNSUPPORTED_CHECK))
 }
 
 // Starts/Stops the LZMA stream encoding/decoding job.  This is a call-chain dependent function that
 // requires Encoder or Decoder to be called first.
-func EncodeDecodeJobAction(stream *lzmaStream, action Action) Return {
-	return Return(C.lzma_code(&stream.cStream, C.lzma_action(action)))
+func EncodeDecodeJobAction(stream *lzmaStream, action internal.Action) internal.Return {
+	return internal.Return(C.lzma_code(&stream.cStream, C.lzma_action(action)))
 }
 
 const MAX_BUF_SIZE = 1328
@@ -213,38 +215,38 @@ func main() {
 	}
 	println("Current Directory:", currentDir)
 
-	file, err := os.Open("test/canterbury-corpus/large/world192.txt")
+	file, err := os.Open("../test/canterbury-corpus/large/world192.txt")
 	if err != nil {
 		panic(err)
 	}
 
 	inbuffer := make([]byte, MAX_BUF_SIZE)
 	outfile, _ := os.Create("world192.txt.xz")
-	action := Run
-	ret := Ok
+	action := internal.Run
+	ret := internal.Ok
 
 	for {
 
-		if action == Finish && ret == StreamEnd {
+		if action == internal.Finish && ret == internal.StreamEnd {
 			break
 		}
 
 		bytesRead, err := file.Read(inbuffer)
 		if err != nil {
-			action = Finish
+			action = internal.Finish
 		}
 		stream.SetInput(inbuffer[:bytesRead])
 
 		ret = EncodeDecodeJobAction(stream, action)
-		if ret != Ok && ret != StreamEnd {
+		if ret != internal.Ok && ret != internal.StreamEnd {
 			panic("Error in encoding/decoding job.")
 		}
 
 		print("\rBytes read: ", stream.TotalInputBytes(), " Bytes written: ", stream.TotalOutputBytes())
 		outfile.Write(stream.Pop())
 
-		if ret == StreamEnd {
-			action = Finish
+		if ret == internal.StreamEnd {
+			action = internal.Finish
 		}
 
 	}

@@ -1,4 +1,4 @@
-package main
+package internal
 
 type Return int // Return values for LZMA functions
 type Action int // Actions for lzma_code
