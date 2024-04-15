@@ -15,12 +15,16 @@ package main
 #cgo CFLAGS: -DHAVE_MF_HC3 -DHAVE_MF_HC4 -DHAVE_MF_BT4
 
 // This is taken from @jamespfennell's lzma-go project to get CGo a way
-// to pass 32/64-bit architecture to lzma since it must be set at compile time.
+// to pass 32/64-bit architecture indicators to lzma since it must be set at compile time.
 #cgo  386  amd64p32  arm  armbe  mips  mipsle  mips64p32  mips64p32le  ppc  riscv  s390  sparc CFLAGS: -DSIZEOF_SIZE_T=4
 #cgo !386,!amd64p32,!arm,!armbe,!mips,!mipsle,!mips64p32,!mips64p32le,!ppc,!riscv,!s390,!sparc CFLAGS: -DSIZEOF_SIZE_T=8
 // Tell C that we want the standard library
 #cgo CFLAGS: -DHAVE_STDBOOL_H -DHAVE_STDINT_H -DHAVE_INTTYPES_H
 
+// Switch on TUKLIB_OPTION_FAST_UNALIGNED_ACCESS to speed up the compression on x86 and x86_64 computers
+#cgo 386 amd64 CFLAGS: -DTUKLIB_FAST_UNALIGNED_ACCESS
+
+// Tell Cgo that we have liblzma source and turn on the C lzma macro
 #cgo LDFLAGS: -Linternal/lzma/src/liblzma -llzma
 
 #include <stdlib.h>
@@ -28,6 +32,15 @@ package main
 #include "internal/lzma/src/liblzma/api/lzma.h"
 #include "internal/common/sysdefs.h"
 
+// liblzma requires that the initialization of the stream be done with a C macro, which CGo cannot see.
+// This function will not be called when this package init(), so it is safe to define it here.
+lzma_mt multi_options = {
+	.check = LZMA_CHECK_CRC64,
+	.threads = 4,
+};
+lzma_mt get_multi_options() {
+	return multi_options;
+}
 lzma_stream new_stream() {
 	lzma_stream lz_stream = LZMA_STREAM_INIT;
 	return lz_stream;
@@ -35,10 +48,10 @@ lzma_stream new_stream() {
 */
 import "C"
 import (
+	"os"
+	"runtime"
 	"unsafe"
 )
-
-const LZMA_CONCATENATED = 1
 
 // This is a type that is used to pass a buffer to C code. It is not safe to use from the top code.
 type unsafeBuffer struct {
@@ -115,10 +128,15 @@ func (s *lzmaStream) AvailableOutputBytes() int {
 	return int(s.cStream.avail_out)
 }
 
-// Returns the number of bytes waiting to be fed into `liblzma`.  If this is non-zero,
-// you can send more data to the stream (up to the number of bytes returned here).
-func (s *lzmaStream) AvailableInputBytes() int {
+// Returns the number of bytes stacked on the input buffer (using SetInput) that
+// are waiting to be processed by the LZMA stream.
+func (s *lzmaStream) PendingInputBytes() int {
 	return int(s.cStream.avail_in)
+}
+
+// Returns the total number of bytes that have been read from the input buffer.
+func (s *lzmaStream) TotalInputBytes() int {
+	return int(s.cStream.total_in)
 }
 
 // Returns the total number of bytes that have been written to the output buffer.
@@ -151,18 +169,32 @@ func (s *lzmaStream) Close() {
 
 // Frees the memory used by the LZMA stream.
 func FreeLZMA(lzmaStream *lzmaStream) {
-	C.lzma_end(nil)
+	C.lzma_end(&lzmaStream.cStream)
 }
 
+// The multi-threaded LZMA encoder.  Multi-threading doesn't do all that much for compression, but when
+// you set compression to lower levels it can speed up the process.
 func Encoder(stream *lzmaStream, preset int) Return {
-	return Return(C.lzma_easy_encoder(&stream.cStream, C.uint(preset), C.LZMA_CHECK_CRC64))
+	//Return(C.lzma_easy_encoder_mt(&stream.cStream, C.uint(preset), C.LZMA_CHECK_CRC64), C.uint(2))
+	// Sets an LZMA stream up for an encoding job.
+	options := C.get_multi_options()
+	options.preset = C.uint(preset)
+	options.threads = C.uint(runtime.NumCPU() / 2) // Use half the number of CPUs for encoding
+	return Return(C.lzma_stream_encoder_mt(&stream.cStream, &options))
 }
 
-func Code(stream *lzmaStream, action Action) Return {
+// Sets an LZMA stream up for a decoding job.
+func Decoder(stream *lzmaStream, memlimit uint64) Return {
+	return Return(C.lzma_stream_decoder(&stream.cStream, C.uint64_t(memlimit), C.LZMA_TELL_UNSUPPORTED_CHECK))
+}
+
+// Starts/Stops the LZMA stream encoding/decoding job.  This is a call-chain dependent function that
+// requires Encoder or Decoder to be called first.
+func EncodeDecodeJobAction(stream *lzmaStream, action Action) Return {
 	return Return(C.lzma_code(&stream.cStream, C.lzma_action(action)))
 }
 
-const MAX_BUF_SIZE = 4096
+const MAX_BUF_SIZE = 1328
 
 func main() {
 
@@ -172,19 +204,51 @@ func main() {
 
 	stream := createStream()
 	defer stream.Close()
-	Encoder(stream, 9)
-	stream.SetInput([]byte("caltionyuotnwlgulwogh]<sientThis is a pretty big stringThis is a pretty big stringThis is a pretty big stri stringThis is a pretty big stri stringThis is a pretty big stri stringThis is a pretty big stri stringThis is a pretty big stri stringThis is a pretty big stri stringThis is a pretty big stri stringThis is a pretty big stri stringThis is a pretty big stri stringThis is a pretty big stri stringThis is a pretty big stri stringThis is a pretty big stringThis is a pretty big stringThis is a pretty big stringThis is a pretty big stringThis is a pretty big stringThis is a pretty big stringThis is a pretty big stringThis is a pretty big stringThis is a pretty big stringThis is a pretty big stringThis is a pretty big stringThis is a pretty big stringThis is a pretty big stringThis is a pretty big stringThis is a pretty big stringThis is a pretty big stringThis is a pretty big stringThis is a pretty big stringThis is a pretty big stringThis is a pretty big stringThis is a pretty big stringThis is a pretty big stringThis is a pretty big stringThis is a pretty big stringThis is a pretty big stringThis is a pretty big stringThis is a pretty big stringThis is a pretty big stringThis is a pretty big string"))
-	println("This is a pretty big string")
-	Code(stream, Run)
-	Code(stream, Finish)
-	str = ""
-	for stream.AvailableOutputBytes() > 0 {
-		data := stream.Pop()
-		if len(data) == 0 {
+	encret := Encoder(stream, 6)
+	println(encret.String())
+
+	currentDir, err := os.Getwd()
+	if err != nil {
+		panic(err)
+	}
+	println("Current Directory:", currentDir)
+
+	file, err := os.Open("test/canterbury-corpus/large/world192.txt")
+	if err != nil {
+		panic(err)
+	}
+
+	inbuffer := make([]byte, MAX_BUF_SIZE)
+	outfile, _ := os.Create("world192.txt.xz")
+	action := Run
+	ret := Ok
+
+	for {
+
+		if action == Finish && ret == StreamEnd {
 			break
 		}
-		str += string(data)
+
+		bytesRead, err := file.Read(inbuffer)
+		if err != nil {
+			action = Finish
+		}
+		stream.SetInput(inbuffer[:bytesRead])
+
+		ret = EncodeDecodeJobAction(stream, action)
+		if ret != Ok && ret != StreamEnd {
+			panic("Error in encoding/decoding job.")
+		}
+
+		print("\rBytes read: ", stream.TotalInputBytes(), " Bytes written: ", stream.TotalOutputBytes())
+		outfile.Write(stream.Pop())
+
+		if ret == StreamEnd {
+			action = Finish
+		}
+
 	}
-	println(str)
+	println()
+	outfile.Close()
 
 }

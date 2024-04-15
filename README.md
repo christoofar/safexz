@@ -15,10 +15,12 @@ Since then, `systemd` and OpenSSH, the two primary projects the `xz` backdoor ex
 
 I'm not a firm believer that `dlopen()` is really much of a [cure](https://github.com/golang/go/issues/58548) than it is a quick excuse to ignore your supply chain.  And still: dynamic linking in software is frought with other problems, one of which is security.
 
-I am pinning my version of `lzma` to versions as [Lasse Collins](https://tukaani.org/contact.html) refactors out the work of Jia Tan.  Similarly, there have been recent commits by Sam James [@thesamesam](https://github.com/thesamesam).   The software is healing, the backdoor in `xz` is dead, and by the time you've found this project it's ready for production use.
+I am pinning my version of `lzma` to post-backdoor versions as [Lasse Collins](https://tukaani.org/contact.html) refactors out the work of Jia Tan.  Similarly, there have been recent commits by Sam James [@thesamesam](https://github.com/thesamesam) done in the spirit of simplifying maintenance of `liblzma` so that the build chain is more compatible with the expectations of modern C developers.   The software is healing, the backdoor in `xz` is dead, and by the time you've found this project, new versions of `liblzma` will ready for production use.
 
 ## limited but easy interface
-Rather than expose the call-chain dependencies of `lzma` directly to you, a simpler Go interface is provided for your integration projects.  The interface breaks down your calls into simpler `chan` transfers to `lzma`.
+Rather than expose the call-chain dependencies of `lzma` directly to you, a simpler Go interface is provided for your integration projects.  The interface breaks down your calls into simpler one way `chan` transfers stream to `lzma`.
+
+Direct file and `[]byte`, I/O functions for syntactic sugar are provided, so that you can avoid standing up a stream monitor and input feeder.
 
 ## safexz wraps the lzma library in isolated go routines
 This project's goal is to abide by a chaos/containment theory which believes _unless you wrote the C code, tread carefully_.
