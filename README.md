@@ -9,7 +9,7 @@ This is a Go package for compression in the xz / lzma format that provides a saf
 As Go itself is much newer, I should be able to maintain compatibility back to `$TODO: backportage tests :-)`.
 
 ## xz backdoor
-Late March 2024 [CVE-2024-3094](https://research.swtch.com/xz-timeline) was issued against the `liblzma` compression library for a [supply chain attack](https://www.crowdstrike.com/cybersecurity-101/cyberattacks/supply-chain-attacks/).  That episode began with the attacker gaining maintainer role on the FOSS project in a 2 year campaign in inject a highly-complicated and stealty [backdoor](https://en.wikipedia.org/wiki/Backdoor_(computing)) into the software by injecting its own pre-compiled and ready-to-be-linked `.o` file into the build stream.
+Late March 2024 [CVE-2024-3094](https://research.swtch.com/xz-timeline) was issued against the `liblzma` compression library for a [supply chain attack](https://www.crowdstrike.com/cybersecurity-101/cyberattacks/supply-chain-attacks/).  That episode began with the attacker gaining maintainer role on the FOSS project in a 2 year campaign to inject a highly-complicated and stealty [backdoor](https://en.wikipedia.org/wiki/Backdoor_(computing)) into the software by injecting its own pre-compiled and ready-to-be-linked `.o` file into the build stream.
 
 Since then, `systemd` and OpenSSH, the two primary projects the `xz` backdoor exploited to gain access to `sshd` have since made code changes that remove `liblzma.so` from static linking.
 
