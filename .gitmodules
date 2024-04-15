@@ -1,3 +1,6 @@
 [submodule "internal/lzma"]
 	path = internal/lzma
 	url = https://git.tukaani.org/xz.git
+[submodule "test/canterbury-corpus"]
+	path = test/canterbury-corpus
+	url = https://github.com/pfalcon/canterbury-corpus.git
