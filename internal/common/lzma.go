@@ -196,6 +196,36 @@ func EncodeDecodeJobAction(stream *lzmaStream, action Action) Return {
 
 const MAX_BUF_SIZE = 1328
 
+func compressChanStream(in *<-chan []byte, out *chan<- []byte) {
+	stream := createStream()
+	defer stream.Close()
+	encret := Encoder(stream, 6)
+	println(encret.String())
+
+	action := Run
+	ret := Ok
+
+	for {
+		if action == Finish && ret == StreamEnd {
+			break
+		}
+
+		data, ok := <-*in
+		if !ok {
+			action = Finish
+		}
+
+		stream.SetInput(data)
+		ret = EncodeDecodeJobAction(stream, action)
+		*out <- stream.Pop()
+
+		if ret == StreamEnd {
+			action = Finish
+		}
+	}
+	close(*out)
+}
+
 func encodeProto() {
 	stream := createStream()
 	defer stream.Close()

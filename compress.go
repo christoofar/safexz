@@ -3,7 +3,12 @@
 // the C language bindings, as they are handled in the lzma package.
 package safexz
 
-import "io"
+import (
+	"io"
+	"os"
+
+	internal "github.com/christoofar/safexz/internal/common"
+)
 
 func CompressString(s string) (string, error) {
 	return "", nil
@@ -18,6 +23,33 @@ func CompressFile(path string) error {
 }
 
 func CompressFileWithProgress(path string, progress func(float64)) error {
+	f, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+
+	readchan := make(chan []byte, 1024)
+	writechan := make(chan []byte, 1024)
+
+	readbuf := make([]byte, 1024)
+	internal.CompressIn(&readchan, &writechan)
+	go func() {
+		for {
+			bytes, err := f.Read(readbuf)
+			if err != nil {
+				close(readchan)
+				break
+			}
+			readchan <- readbuf[:bytes]
+		}
+	}()
+
+	outfile, _ := os.Create("output.xz")
+	for data := range writechan {
+		outfile.Write(data)
+	}
+	outfile.Close()
+
 	return nil
 }
 
