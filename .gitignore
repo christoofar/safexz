@@ -8,6 +8,7 @@
 *.so
 *.dylib
 *.xz
+*.iso
 
 # Emacs nonsense
 \#*#
