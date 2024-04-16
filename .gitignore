@@ -25,3 +25,4 @@
 # Go workspace file
 go.work
 safexz
+cmd/main
