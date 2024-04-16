@@ -22,14 +22,14 @@ func CompressFile(path string) error {
 	return nil
 }
 
-func CompressFileWithProgress(path string, progress func(float64)) error {
+func CompressFileWithProgress(path string, progress func(uint64)) error {
 	f, err := os.Open(path)
 	if err != nil {
 		return err
 	}
 
-	readchan := make(chan []byte, internal.MAX_BUF_SIZE)
-	writechan := make(chan []byte, internal.MAX_BUF_SIZE)
+	readchan := make(chan []byte)
+	writechan := make(chan []byte)
 
 	readbuf := make([]byte, internal.MAX_BUF_SIZE)
 	internal.CompressIn(&readchan, &writechan)
@@ -45,8 +45,13 @@ func CompressFileWithProgress(path string, progress func(float64)) error {
 	}()
 
 	outfile, _ := os.Create("output.xz")
+	var count uint64
 	for data := range writechan {
 		outfile.Write(data)
+		count += uint64(len(data))
+		if progress != nil {
+			progress(count)
+		}
 	}
 	outfile.Close()
 

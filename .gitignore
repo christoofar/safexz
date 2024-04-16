@@ -27,3 +27,4 @@ go.work
 safexz
 cmd/main
 cmd/cmd
+cmd/output
