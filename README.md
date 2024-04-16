@@ -38,4 +38,4 @@ More detail about this technique is [over here](https://gist.github.com/christoo
 ## credits
 This work is based off the direct `liblzma` library stubs [published](https://github.com/jamespfennell/xz) by [@jamespfennell](https://github.com/jamespfennell/xz) under the MIT license.  `liblzma` is the published work of [Lasse Collin](https://git.tukaani.org/?p=xz.git;a=blob_plain;f=AUTHORS;hb=fcbd0d199933a69713cb293cbd7409a757d854cd) and [many others](https://git.tukaani.org/?p=xz.git;a=blob;f=THANKS;h=7d2d4fe82ad8ab14161d1bacd8ef3437fe51634d;hb=fcbd0d199933a69713cb293cbd7409a757d854cd) and is published under the 0BSD software license.
 
-`safexz` is the published work of Christopher Sawyer and is made available under the MIT license.
+`safexz` is the published work of Christopher Sawyer and is made available under the BSD3 license.
