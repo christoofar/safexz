@@ -28,10 +28,10 @@ func CompressFileWithProgress(path string, progress func(float64)) error {
 		return err
 	}
 
-	readchan := make(chan []byte, 1024)
-	writechan := make(chan []byte, 1024)
+	readchan := make(chan []byte, internal.MAX_BUF_SIZE)
+	writechan := make(chan []byte, internal.MAX_BUF_SIZE)
 
-	readbuf := make([]byte, 1024)
+	readbuf := make([]byte, internal.MAX_BUF_SIZE)
 	internal.CompressIn(&readchan, &writechan)
 	go func() {
 		for {
