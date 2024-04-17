@@ -51,7 +51,7 @@ func CompressFileWithProgress(inpath string, outpath string, progress func(uint6
 	writechan := make(chan []byte)
 
 	readbuf := make([]byte, internal.MAX_BUF_SIZE)
-	internal.CompressIn(&readchan, &writechan, use_strategy)
+	internal.CompressIn(&readchan, &writechan, int(use_strategy))
 	var readCount uint64
 	var writeCount uint64
 

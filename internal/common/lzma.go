@@ -229,23 +229,30 @@ func compressChanStream(in *<-chan []byte, out *chan<- []byte, strategy Compress
 	setting := 0
 	cpu_strategy := 0
 	switch strategy {
-	case CompressionSimple, CompressionMulti, CompressionFullPower:
+	//case CompressionSimple, CompressionMulti, CompressionFullPower:
+	case 0, 4, 8:
 		setting = 4
-	case CompressionSimpleFast, CompressionMultiFast, CompressionFullPowerFast:
+	//case CompressionSimpleFast, CompressionMultiFast, CompressionFullPowerFast:
+	case 1, 5, 9:
 		setting = 2
-	case CompressionSimpleBetter, CompressionMultiBetter, CompressionFullPowerBetter:
+	//case CompressionSimpleBetter, CompressionMultiBetter, CompressionFullPowerBetter:
+	case 2, 6, 10:
 		setting = 7
-	case CompressionSimpleMax, CompressionMultiMax, CompressionFullPowerMax:
+	//case CompressionSimpleMax, CompressionMultiMax, CompressionFullPowerMax:
+	case 3, 7, 11:
 		setting = 9
 	}
 
 	// 0 = single threaded, 1 = half the number of CPUs, 2 = all CPUs
 	switch strategy {
-	case CompressionSimple, CompressionSimpleFast, CompressionSimpleBetter, CompressionSimpleMax:
+	//case CompressionSimple, CompressionSimpleFast, CompressionSimpleBetter, CompressionSimpleMax:
+	case 0, 1, 2, 3:
 		cpu_strategy = 0
-	case CompressionMulti, CompressionMultiFast, CompressionMultiBetter, CompressionMultiMax:
+	//case CompressionMulti, CompressionMultiFast, CompressionMultiBetter, CompressionMultiMax:
+	case 4, 5, 6, 7:
 		cpu_strategy = 1
-	case CompressionFullPower, CompressionFullPowerFast, CompressionFullPowerBetter, CompressionFullPowerMax:
+	//case CompressionFullPower, CompressionFullPowerFast, CompressionFullPowerBetter, CompressionFullPowerMax:
+	case 8, 9, 10, 11:
 		cpu_strategy = 2
 	}
 
