@@ -16,12 +16,14 @@
 |CompressionMultiFast   | ½ vCPUs | 2 |
 |CompressionMultiBetter | ½ vCPUs | 7 |
 |CompressionMultiMax    | ½ vCPUs | 9 |
-|CompressionFullPower   | All vCPUs | 4 |
-|CompressionFullPower   | All vCPUs | 2 |
-|CompressionFullPower   | All vCPUs | 7 |
-|CompressionFullPower   | All vCPUs | 9 |
+|CompressionFullPower         | All vCPUs | 4 |
+|CompressionFullPowerFast     | All vCPUs | 2 |
+|CompressionFullPowerBetter   | All vCPUs | 7 |
+|CompressionFullPowerMax      | All vCPUs | 9 |
 
 `* If only 2 cores are available, the Multi option will use both cores just the same as asking for the FullPower strategy.   On a single-core machine, all the options will default to single thread.`
+
+I chose `CompressionMulti` as the default option for unspecified, as it balances for a multi-core environment which most people are running in containers but stays conservative on the memory so only 300MB max is expected to go into reservation when passing in a big file.   If you own a beast of a ThreadRipper you obviously are going to reach for `CompressionFullPowerMax`, while the default setting will still work fine on older Raspberry PI boards.
 
 - To check for memory leaks I wrote a simple loop to bang away at file compression using my copy of the Debian12 installation DVD.  I was surprised that `xz` is a bit non-deterministic in compression results, which is not an expected outcome.   Pass 3 compressed to 2,640,800,208 bytes while Pass 10 compressed to 2,600,824,772.   I checked the progress report calls to make sure I wasn't missing a call to report progress at the tail end of compression.
 ![image](https://github.com/christoofar/safexz/assets/5059144/0ff252d7-41b6-4d9f-8afc-d781d095d6d4)
