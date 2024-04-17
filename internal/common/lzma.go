@@ -174,12 +174,38 @@ func FreeLZMA(lzmaStream *lzmaStream) {
 
 // The multi-threaded LZMA encoder.  Multi-threading doesn't do all that much for compression, but when
 // you set compression to lower levels it can speed up the process.
-func Encoder(stream *lzmaStream, preset int) Return {
+func Encoder(stream *lzmaStream, preset int, cpu_strategy int) Return {
 	//Return(C.lzma_easy_encoder_mt(&stream.cStream, C.uint(preset), C.LZMA_CHECK_CRC64), C.uint(2))
 	// Sets an LZMA stream up for an encoding job.
 	options := C.get_multi_options()
 	options.preset = C.uint(preset)
-	options.threads = C.uint(runtime.NumCPU() / 2) // Use half the number of CPUs for encoding
+
+	switch cpu_strategy {
+	case 0:
+		options.threads = 1
+	case 1:
+		if runtime.NumCPU() == 1 {
+			options.threads = 1
+			break
+		}
+		if runtime.NumCPU() == 2 {
+			options.threads = 2
+			break
+		}
+		options.threads = C.uint(runtime.NumCPU() / 2)
+	case 2:
+		if runtime.NumCPU() == 1 {
+			options.threads = 1
+			break
+		}
+		if runtime.NumCPU() == 2 {
+			options.threads = 2
+			break
+		}
+		options.threads = C.uint(runtime.NumCPU())
+	}
+	options.threads = C.uint(runtime.NumCPU())
+	//options.threads = C.uint(runtime.NumCPU() / 2) // Use half the number of CPUs for encoding
 	return Return(C.lzma_stream_encoder_mt(&stream.cStream, &options))
 }
 
@@ -196,11 +222,34 @@ func EncodeDecodeJobAction(stream *lzmaStream, action Action) Return {
 
 const MAX_BUF_SIZE = 1024
 
-func compressChanStream(in *<-chan []byte, out *chan<- []byte) {
+func compressChanStream(in *<-chan []byte, out *chan<- []byte, strategy CompressionStrategy) {
 	stream := createStream()
 	defer stream.Close()
-	encret := Encoder(stream, 5)
-	println(encret.String())
+
+	setting := 0
+	cpu_strategy := 0
+	switch strategy {
+	case CompressionSimple, CompressionMulti, CompressionFullPower:
+		setting = 4
+	case CompressionSimpleFast, CompressionMultiFast, CompressionFullPowerFast:
+		setting = 2
+	case CompressionSimpleBetter, CompressionMultiBetter, CompressionFullPowerBetter:
+		setting = 7
+	case CompressionSimpleMax, CompressionMultiMax, CompressionFullPowerMax:
+		setting = 9
+	}
+
+	// 0 = single threaded, 1 = half the number of CPUs, 2 = all CPUs
+	switch strategy {
+	case CompressionSimple, CompressionSimpleFast, CompressionSimpleBetter, CompressionSimpleMax:
+		cpu_strategy = 0
+	case CompressionMulti, CompressionMultiFast, CompressionMultiBetter, CompressionMultiMax:
+		cpu_strategy = 1
+	case CompressionFullPower, CompressionFullPowerFast, CompressionFullPowerBetter, CompressionFullPowerMax:
+		cpu_strategy = 2
+	}
+
+	Encoder(stream, setting, cpu_strategy)
 
 	action := Run
 	ret := Ok

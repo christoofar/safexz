@@ -12,19 +12,29 @@ import (
 	internal "github.com/christoofar/safexz/internal/common"
 )
 
-func CompressString(s string) (string, error) {
+func CompressString(s string, strategy ...CompressionStrategy) (string, error) {
 	return "", nil
 }
 
-func CompressBytes(b []byte) ([]byte, error) {
+func CompressBytes(b []byte, strategy ...CompressionStrategy) ([]byte, error) {
 	return nil, nil
 }
 
-func CompressFile(path string) error {
-	return nil
+func CompressFile(inpath string, outpath string, strategy ...CompressionStrategy) error {
+	use_strategy := CompressionMulti
+	if len(strategy) > 0 {
+		use_strategy = strategy[0]
+	}
+	return CompressFileWithProgress(inpath, outpath, nil, use_strategy)
 }
 
-func CompressFileWithProgress(inpath string, outpath string, progress func(uint64, uint64)) error {
+func CompressFileWithProgress(inpath string, outpath string, progress func(uint64, uint64), strategy ...CompressionStrategy) error {
+
+	use_strategy := CompressionMulti
+	if len(strategy) > 0 {
+		use_strategy = strategy[0]
+	}
+
 	// Check the file extension
 	extension := filepath.Ext(outpath)
 	fileExtension := extension[1:]
@@ -41,7 +51,7 @@ func CompressFileWithProgress(inpath string, outpath string, progress func(uint6
 	writechan := make(chan []byte)
 
 	readbuf := make([]byte, internal.MAX_BUF_SIZE)
-	internal.CompressIn(&readchan, &writechan)
+	internal.CompressIn(&readchan, &writechan, use_strategy)
 	var readCount uint64
 	var writeCount uint64
 
@@ -75,6 +85,7 @@ func CompressFileWithProgress(inpath string, outpath string, progress func(uint6
 		}
 	}
 	outfile.Close()
+	readbuf = nil
 
 	return nil
 }

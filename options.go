@@ -1,6 +1,4 @@
-// Exposes the internal functions of lzma as a construction of calls requiring streaming
-// input and output channels.
-package internal
+package safexz
 
 // CompressionStrategy is an enum type for the compression strategy to use for encoding.
 type CompressionStrategy int
@@ -56,14 +54,3 @@ const CompressionFullPowerBetter CompressionStrategy = 10
 // uses a large amount of memory. This option is not recommended for systems with constrained memory
 // resources, and on large files will crowd out other processing on the system.
 const CompressionFullPowerMax CompressionStrategy = 11
-
-func CompressIn(in *chan []byte, out *chan []byte, strategy CompressionStrategy) {
-
-	// The reason for the nested go routines is to isolate the unsafeBuffer
-	go func(input *chan []byte, output *chan []byte) {
-		go func(receive <-chan []byte, sender chan<- []byte) {
-			compressChanStream(&receive, &sender, strategy)
-		}(*input, *output)
-	}(in, out)
-
-}
