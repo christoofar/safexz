@@ -204,8 +204,6 @@ func Encoder(stream *lzmaStream, preset int, cpu_strategy int) Return {
 		}
 		options.threads = C.uint(runtime.NumCPU())
 	}
-	options.threads = C.uint(runtime.NumCPU())
-	//options.threads = C.uint(runtime.NumCPU() / 2) // Use half the number of CPUs for encoding
 	return Return(C.lzma_stream_encoder_mt(&stream.cStream, &options))
 }
 
@@ -222,7 +220,7 @@ func EncodeDecodeJobAction(stream *lzmaStream, action Action) Return {
 
 const MAX_BUF_SIZE = 1024
 
-func compressChanStream(in *<-chan []byte, out *chan<- []byte, strategy CompressionStrategy) {
+func compressChanStream(in *<-chan []byte, out *chan<- []byte, strategy int) {
 	stream := createStream()
 	defer stream.Close()
 
@@ -285,7 +283,7 @@ func compressChanStream(in *<-chan []byte, out *chan<- []byte, strategy Compress
 func encodeProto() {
 	stream := createStream()
 	defer stream.Close()
-	encret := Encoder(stream, 6)
+	encret := Encoder(stream, 4, 1)
 	println(encret.String())
 
 	currentDir, err := os.Getwd()

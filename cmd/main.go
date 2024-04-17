@@ -22,5 +22,6 @@ func main() {
 		safexz.CompressFileWithProgress("/home/christoofar/ISO/debian.iso", "/home/christoofar/VMBackups/debian.xz", func(readByteCount uint64, decodedByteCount uint64) {
 			print(fmt.Sprintf("\rPass: %v Read bytes: %v \tCompressed bytes: %v", pass, readByteCount, decodedByteCount))
 		})
+		println()
 	}
 }
