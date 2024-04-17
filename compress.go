@@ -4,8 +4,10 @@
 package safexz
 
 import (
+	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 
 	internal "github.com/christoofar/safexz/internal/common"
 )
@@ -22,8 +24,15 @@ func CompressFile(path string) error {
 	return nil
 }
 
-func CompressFileWithProgress(path string, progress func(uint64)) error {
-	f, err := os.Open(path)
+func CompressFileWithProgress(inpath string, outpath string, progress func(uint64, uint64)) error {
+	// Check the file extension
+	extension := filepath.Ext(outpath)
+	fileExtension := extension[1:]
+	if fileExtension != "xz" {
+		return fmt.Errorf("output file [%s] must have an xz extension", outpath)
+	}
+
+	f, err := os.Open(inpath)
 	if err != nil {
 		return err
 	}
@@ -33,9 +42,16 @@ func CompressFileWithProgress(path string, progress func(uint64)) error {
 
 	readbuf := make([]byte, internal.MAX_BUF_SIZE)
 	internal.CompressIn(&readchan, &writechan)
+	var readCount uint64
+	var writeCount uint64
+
 	go func() {
 		for {
 			bytes, err := f.Read(readbuf)
+			readCount += uint64(bytes)
+			if progress != nil && readCount%4096 == 0 {
+				progress(readCount, writeCount)
+			}
 			if err != nil {
 				close(readchan)
 				break
@@ -44,13 +60,18 @@ func CompressFileWithProgress(path string, progress func(uint64)) error {
 		}
 	}()
 
-	outfile, _ := os.Create("output.xz")
-	var count uint64
+	outfile, err := os.Create(outpath)
+	if err != nil {
+		return err
+	}
+
 	for data := range writechan {
 		outfile.Write(data)
-		count += uint64(len(data))
-		if progress != nil {
-			progress(count)
+		if len(data) > 0 {
+			if progress != nil {
+				writeCount += uint64(len(data))
+				progress(readCount, writeCount)
+			}
 		}
 	}
 	outfile.Close()

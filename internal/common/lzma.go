@@ -199,7 +199,7 @@ const MAX_BUF_SIZE = 1024
 func compressChanStream(in *<-chan []byte, out *chan<- []byte) {
 	stream := createStream()
 	defer stream.Close()
-	encret := Encoder(stream, 9)
+	encret := Encoder(stream, 5)
 	println(encret.String())
 
 	action := Run
