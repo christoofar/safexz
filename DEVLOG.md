@@ -6,6 +6,17 @@ So, all options using Simple (single-threading) produce a good result.  The mult
 
 *Eureka!* I found what was wrong with the multithreaded compress options.  Turns out that I goofed and did not check `.avail_in` on the stream before pushing data.  Apparently this issue doesn't turn up frequently enough for me to see it in single-threaded mode but it will come up in multi-threaded.   `.avail_in` tells you that there are bytes waiting to be drained into the memory area where lzma is working.   You can try to fill up to `MAX_BUFFER_SIZE` but it's easier to wait for it to clear to zero in a cycle and on the next cycle it's likely for the drain to occur.  If you just set all the bytes for the cycle then the bytes waiting to be drained will be destroyed.
 
+Now, testing again with compressing the Debian12 DVD I still get two different compression result sizes.
+![image](https://github.com/christoofar/safexz/assets/5059144/ef8fdbec-957e-4d2c-8023-c338f656b996)
+
+But this time the byte counts matches the origin.
+![image](https://github.com/christoofar/safexz/assets/5059144/4120ddad-c460-4481-8841-a3909c0d1b82)
+
+Is LZMA still not deterministic?  That's wild.  Can't be right.  Let's check that all the bytes exactly match.
+![image](https://github.com/christoofar/safexz/assets/5059144/cc43aa82-99b2-47d5-ab38-31d8063906da)
+
+You know... I think maybe `MAX_BUFFER_SIZE` really should be down in the low count, like `1024`.  Anything higher might break some limits or plausables. 
+
 ## Apr 17 2024
 
 - Completed encoding pathway using `*<-chan` and `*chan<-` streaming paths to `liblzma.so`
