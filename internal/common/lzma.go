@@ -35,7 +35,11 @@ package internal
 // liblzma requires that the initialization of the stream be done with a C macro, which CGo cannot see.
 // This function will not be called when this package init(), so it is safe to define it here.
 lzma_mt multi_options = {
+	.flags = 0,
+	.block_size = 0,
+	.filters = NULL,
 	.check = LZMA_CHECK_CRC64,
+	.timeout = 0,
 	.threads = 4,
 };
 lzma_mt get_multi_options() {
@@ -218,7 +222,7 @@ func EncodeDecodeJobAction(stream *lzmaStream, action Action) Return {
 	return Return(C.lzma_code(&stream.cStream, C.lzma_action(action)))
 }
 
-const MAX_BUF_SIZE = 1024
+const MAX_BUF_SIZE = 8192
 
 func compressChanStream(in *<-chan []byte, out *chan<- []byte, strategy int) {
 	stream := createStream()
@@ -264,12 +268,16 @@ func compressChanStream(in *<-chan []byte, out *chan<- []byte, strategy int) {
 			break
 		}
 
-		data, ok := <-*in
-		if !ok {
-			action = Finish
+		// Don't attempt to feed liblzma more data until it has drained the last push
+		if stream.PendingInputBytes() == 0 {
+			data, ok := <-*in
+			if !ok {
+				action = Finish
+			}
+
+			stream.SetInput(data)
 		}
 
-		stream.SetInput(data)
 		ret = EncodeDecodeJobAction(stream, action)
 		*out <- stream.Pop()
 

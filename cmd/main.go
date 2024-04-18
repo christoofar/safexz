@@ -4,6 +4,8 @@ import (
 	"fmt"
 
 	"github.com/christoofar/safexz"
+	"golang.org/x/text/language"
+	"golang.org/x/text/message"
 )
 
 func main() {
@@ -17,11 +19,14 @@ func main() {
 	// })
 
 	var pass uint64
+	p := message.NewPrinter(language.English)
+
 	for {
 		pass++
-		safexz.CompressFileWithProgress("/home/christoofar/ISO/debian.iso", "/home/christoofar/VMBackups/debian.xz", func(readByteCount uint64, decodedByteCount uint64) {
-			print(fmt.Sprintf("\rPass: %v Read bytes: %v \tCompressed bytes: %v", pass, readByteCount, decodedByteCount))
-		})
+		safexz.CompressFileWithProgress("/home/christoofar/ISO/debian.iso", fmt.Sprintf("/home/christoofar/VMBackups/debian%v.xz", pass), func(readByteCount uint64, decodedByteCount uint64) {
+			print(p.Sprintf("\rPass: %v Read bytes: %v \tCompressed bytes: %v", pass, readByteCount, decodedByteCount))
+		}, safexz.CompressionMulti)
 		println()
+		return
 	}
 }
