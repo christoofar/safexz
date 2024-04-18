@@ -33,4 +33,4 @@ Let's decompress the result of Pass 3...
 
 Looks like I have a bug somewhere in my stream mechanism.   I'll need to make sure the input bytes are all getting into the encoder and that I am not prematurely closing out of the encoding cycle.
 
-- All least the memory leak checks are passing.
+- At least the memory leak checks are passing.
