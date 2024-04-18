@@ -1,5 +1,9 @@
 # Development Log
 
+## Apr 18 2024
+
+So, all options using Simple (single-threading) produce a good result.  The multi-threading ones do not.  Probably another signal that I need to pick up from `liblzma.so` to know that all the threads underneath in the innermost goroutine have completed.  I'll be hunting around for some multithread examples in C to see if the calling pattern is different.
+
 ## Apr 17 2024
 
 - Completed encoding pathway using `*<-chan` and `*chan<-` streaming paths to `liblzma.so`
