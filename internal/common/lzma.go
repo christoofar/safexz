@@ -52,6 +52,7 @@ lzma_stream new_stream() {
 */
 import "C"
 import (
+	"fmt"
 	"os"
 	"runtime"
 	"unsafe"
@@ -222,9 +223,9 @@ func EncodeDecodeJobAction(stream *lzmaStream, action Action) Return {
 	return Return(C.lzma_code(&stream.cStream, C.lzma_action(action)))
 }
 
-const MAX_BUF_SIZE = 8192
+const MAX_BUF_SIZE = 1024
 
-func compressChanStream(in *<-chan []byte, out *chan<- []byte, strategy int) {
+func compressChanStream(in <-chan []byte, out chan<- []byte, strategy int) {
 	stream := createStream()
 	defer stream.Close()
 
@@ -262,30 +263,41 @@ func compressChanStream(in *<-chan []byte, out *chan<- []byte, strategy int) {
 
 	action := Run
 	ret := Ok
+	stopreading := false
+
+	// let's see if we get the bytes in order
+	checkfile, _ := os.Create("checkfile.iso")
 
 	for {
 		if action == Finish && ret == StreamEnd {
-			break
+			data := stream.Pop()
+			if len(data) > 0 {
+				out <- data
+			} else {
+				close(out)
+				return
+			}
 		}
 
 		// Don't attempt to feed liblzma more data until it has drained the last push
-		if stream.PendingInputBytes() == 0 {
-			data, ok := <-*in
-			if !ok {
+		if stream.PendingInputBytes() == 0 && !stopreading {
+			data, ok := <-in
+			checkfile.Write(data)
+			if len(data) == 0 && !ok {
 				action = Finish
+				stopreading = true
+				checkfile.Close()
+			} else {
+				stream.SetInput(data)
 			}
-
-			stream.SetInput(data)
 		}
 
 		ret = EncodeDecodeJobAction(stream, action)
-		*out <- stream.Pop()
-
-		if ret == StreamEnd {
-			action = Finish
+		if ret != Ok && ret != StreamEnd {
+			panic(fmt.Errorf("error in encoding/decoding job. %s", ret))
 		}
+		out <- stream.Pop()
 	}
-	close(*out)
 }
 
 func encodeProto() {
@@ -335,6 +347,5 @@ func encodeProto() {
 		}
 
 	}
-	println()
 	outfile.Close()
 }

@@ -47,45 +47,56 @@ func CompressFileWithProgress(inpath string, outpath string, progress func(uint6
 		return err
 	}
 
-	readchan := make(chan []byte)
-	writechan := make(chan []byte)
+	readchan := make(chan []byte, 1)
+	writechan := make(chan []byte, 1)
 
-	readbuf := make([]byte, internal.MAX_BUF_SIZE)
-	internal.CompressIn(&readchan, &writechan, int(use_strategy))
+	internal.CompressIn(readchan, writechan, int(use_strategy))
 	var readCount uint64
 	var writeCount uint64
 
-	go func() {
+	readfunc := func() {
+		readbuf := make([]byte, internal.MAX_BUF_SIZE)
+
 		for {
 			bytes, err := f.Read(readbuf)
 			readCount += uint64(bytes)
 			if progress != nil && readCount%4096 == 0 {
 				progress(readCount, writeCount)
 			}
-			if err != nil {
+			if err != nil { // The EOF has been hit, send the final batch
+				readchan <- readbuf[:bytes]
 				close(readchan)
 				break
 			}
-			readchan <- readbuf[:bytes]
+
+			data := make([]byte, bytes)
+			copy(data, readbuf)
+			readchan <- data
 		}
-	}()
+	}
 
 	outfile, err := os.Create(outpath)
 	if err != nil {
 		return err
 	}
 
-	for data := range writechan {
-		outfile.Write(data)
-		if len(data) > 0 {
-			if progress != nil {
-				writeCount += uint64(len(data))
-				progress(readCount, writeCount)
+	go readfunc()
+
+	donewrite := make(chan bool, 1)
+	go func() {
+		for data := range writechan {
+			outfile.Write(data)
+			if len(data) > 0 {
+				if progress != nil {
+					writeCount += uint64(len(data))
+					progress(readCount, writeCount)
+				}
 			}
 		}
-	}
+		donewrite <- true
+	}()
+	<-donewrite
 	outfile.Close()
-	readbuf = nil
 
 	return nil
 }
