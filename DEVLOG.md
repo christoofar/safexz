@@ -8,6 +8,7 @@ So, I finally figured out why I was getting such non-deterministic results
 `readbuf` is dirty after the read.  I thought that this was a simple reusable type but it's got some distinct behavior when used with `file.Read()` because of the syscall that occurs.   To fix this, I pull out what was read into a clean byte slice and send that into the `chan` for processing.
 
 That results in a clean byte-for-byte accounted-for `diff`:
+
 ![image](https://github.com/christoofar/safexz/assets/5059144/98292003-274d-4375-bb88-6e413aa6726a)
 
 
