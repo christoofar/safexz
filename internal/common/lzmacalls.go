@@ -12,3 +12,14 @@ func CompressIn(in chan []byte, out chan []byte, strategy int) {
 	}(in, out, strategy)
 
 }
+
+func DecompressIn(in chan []byte, out chan []byte) {
+
+	// The reason for the nested go routines is to isolate the unsafeBuffer
+	go func(input chan []byte, output chan []byte) {
+		go func(receive chan []byte, sender chan []byte) {
+			decompressChanStream(receive, sender)
+		}(input, output)
+	}(in, out)
+
+}
