@@ -1,5 +1,16 @@
 # Development Log
 
+## Apr 19 2024
+
+So, I finally figured out why I was getting such non-deterministic results
+![image](https://github.com/christoofar/safexz/assets/5059144/f4136c9c-3742-4262-9a26-03eacd338ac0)
+
+`readbuf` is dirty after the read.  I thought that this was a simple reusable type but it's got some distinct behavior when used with `file.Read()` because of the syscall that occurs.   To fix this, I pull out what was read into a clean byte slice and send that into the `chan` for processing.
+
+That results in a clean byte-for-byte accounted-for `diff`:
+![image](https://github.com/christoofar/safexz/assets/5059144/98292003-274d-4375-bb88-6e413aa6726a)
+
+
 ## Apr 18 2024
 
 So, all options using Simple (single-threading) produce a good result.  The multi-threading ones do not.  Probably another signal that I need to pick up from `liblzma.so` to know that all the threads underneath in the innermost goroutine have completed.  I'll be hunting around for some multithread examples in C to see if the calling pattern is different.
