@@ -26,6 +26,8 @@ func main() {
 		safexz.DecompressFileWithProgress(fmt.Sprintf("/home/christoofar/VMBackups/debian%v.xz", pass), fmt.Sprintf("/home/christoofar/VMBackups/debian%v.iso", pass), func(readByteCount uint64, decodedByteCount uint64) {
 			print(p.Sprintf("\rPass: %v Read bytes: %v \tDecompressed bytes: %v", pass, readByteCount, decodedByteCount))
 		})
+		println()
+		println("Decompression complete.")
 
 		if pass == 100 {
 			break
