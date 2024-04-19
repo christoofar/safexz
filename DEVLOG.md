@@ -11,6 +11,7 @@ That results in a clean byte-for-byte accounted-for `diff`:
 
 ![image](https://github.com/christoofar/safexz/assets/5059144/98292003-274d-4375-bb88-6e413aa6726a)
 
+Now I can move on to the multi-threaded decompression.
 
 ## Apr 18 2024
 
