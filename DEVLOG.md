@@ -61,6 +61,8 @@ Segmentation eliminates the problem of shared cooperative memory and the need to
 ```
 The simplist answer to this conundrum is to load more of the data to be compressed into working storage (RAM), so that expensive cleanup passes and/or multi-segment sized sweeper passes can examine the finished areas of the compression stream in the working storage and correct areas that escaped attention of the standard compression scheme working at the smallest segment size.
 
+Whether running these cleanup passes is worth it entirely depends on the nature of the data underneath.  Large datasets with huge repeating page blocks will certainly pass across the compression window if it's large enough, but the compressed result will likely compress much further if the repeating patterns are seen again much later in the datastream, which would get pickup up by a pass using a larger inspection size.
+
 And this is what the higher settings of `liblzma.so` essentially, more-or-less, do.   More threads don't make compression necessarily faster, but more RAM certainly will.  It does in a dramatic way.  RAM speed and the amount of it you have by and large will dominate the time spent compressing, less so on the underlying I/O media speed or the number of cores you throw at it.
 
 So for big data you're best off giving a few extra gigs of RAM to `safexz` and run it with `CompressionFullPowerBetter`.  As you can see, an 8GB VM is not going to handle compressing `debian.iso` that well.  This has VSCode running in debug mode sucking up about 4.5GB of RAM and `safexz` in the `CompressionFullPowerMax` setting has pulled down an extra 1.5GB of RAM (the `RES` column) and sent the Linux swap system into overdrive.
