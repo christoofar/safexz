@@ -1,5 +1,18 @@
 # Development Log
 
+## Why Aren't You Supporting Multi-threaded decompression?
+
+If you're looking at the functions I put in `decompression.go`, I've skipped on multi-threaded decompression.   In the decompression scenario it (yet again) comes down to the working storage in RAM that will determine the decompression speed and this time output I/O will play a bigger factor as bytes in the working area need to be cleared away to make room for the compressed data coming in.
+
+For `safexz` I have set a hard maximum area of `120<<20`, or 120MB of decompression working storage.  For the original Raspberry PI 1 which has 512MB of working storage, this is sufficient without causing too much headage.
+
+On the off-chance that you are using TinyGo and working on ridiculously constrained machine, I have come up with this solve, which isn't one of my prouder moments:
+
+![image](https://github.com/christoofar/safexz/assets/5059144/e1789cc9-8e8f-4280-8861-fd1ee36ef90b)
+
+On normal VMs `liblzma` will get a very ample working area and you'll see nice I/O coming out of the streamer.  If you're trying to re-create a Commodore128 in TinyGo you'll at least get... working storage.  Of 64KB.
+
+
 ## Apr 20 2024
 
 Made a quick prover to see how the different canned compression strategies pan out.  This is over a puny 6-core dev VM so it will naturally be slow, thus a better comparison of the multithreaded behaviors of `liblzma.so` can be spotted.  Compressing the King James Bible yields these results (The results as they come out are unsorted, so I've resorted them here):
