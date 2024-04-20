@@ -36,9 +36,36 @@ CompressionFullPowerBetter     :         1.818037158s : 885192 bytes
 CompressionFullPowerMax        :         1.819513768s : 885192 bytes
 ```
 
-So there's no savings to be had at all going with the `Max` option when it comes to raw text, as that just burns CPU.   The most interesting result is the `CompressionSimpleFast` option beat everything else on time.   When you thing about it, it makes sense.
+So there's no savings to be had at all going with the `Max` option when it comes to raw text, as that just burns CPU.  At least when it comes to the common text case sizes at least.   The most interesting result is the `CompressionSimpleFast` option beat everything else on time.   When you thing about it, it makes sense.
 
-Single-stream compression algorithms don't lend themselves well to multiprocessing 
+Single-stream compression algorithms don't lend themselves well to multiprocessing because of a basic way multiprocessing on single-tasks works called `segmentation`.   Segmentation is when you break up an unworked dataset like this:
+
+```
++--------------------+-------------------+-------------------+
++    Data Part 1     +    Data Part 2    +     Data Part 3   +
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+```
+Then you would assign coroutines or whole OS process threads to work on all three parts, then stitch the results back into one post-process dataset.
+
+You can segment the data again into sub-sub segments like this if you have lots of resources:
+```
++--------------------+-------------------+-------------------+
++  Block 1 + Block 2 + Block 3 + Block 4 + Block 5 + Block 6 +
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+```
+Segmentation eliminates the problem of shared cooperative memory and the need to lock sections of memory to prevent collisions, but now you've created areas of the dataset where repetitive data that crosses a block boundary might escape the attention of the compression routine each thread is running:
+```
++--------------------+-------------------+-------------------+
++ ----> [ Repetitive data ] Data Part 2  +     Data Part 3   +
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+```
+The simplist answer to this conundrum is to load more of the data to be compressed into working storage (RAM), so that expensive cleanup passes and/or multi-segment sized sweeper passes can examine the finished areas of the compression stream in the working storage and correct areas that escaped attention of the standard compression scheme working at the smallest segment size.
+
+And this is what the higher settings of `liblzma.so` essentially, more-or-less, do.   More threads don't make compression necessarily faster, but more RAM certainly will.  It does in a dramatic way.  RAM speed and the amount of it you have by and large will dominate the time spent compressing, less so on the underlying I/O media speed or the number of cores you throw at it.
+
+So for big data you're best off giving a few extra gigs of RAM to `safexz` and run it with `CompressionFullPowerBetter`.  As you can see, an 8GB VM is not going to handle compressing `debian.iso` that well.  This has VSCode running in debug mode sucking up about 4.5GB of RAM and `safexz` in the `CompressionFullPowerMax` setting has pulled down an extra 1.5GB of RAM (the `RES` column) and sent the Linux swap system into overdrive.
+![image](https://github.com/christoofar/safexz/assets/5059144/9dbdff68-2496-4519-82a5-246fe4a9832f)
+
 
 
 ## Apr 19 2024
