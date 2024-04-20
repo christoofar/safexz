@@ -1,5 +1,46 @@
 # Development Log
 
+## Apr 20 2024
+
+Made a quick prover to see how the different canned compression strategies pan out.  This is over a puny 6-core dev VM so it will naturally be slow, thus a better comparison of the multithreaded behaviors of `liblzma.so` can be spotted.  Compressing the King James Bible yields these results (The results as they come out are unsorted, so I've resorted them here):
+
+```
+christoofar@pop-os:~/src/safexz/cmd/speedtest$ ./speedtest -i ../../test/canterbury-corpus/large/bible.txt 
+Starting compression with CompressionSimpleFast...
+Starting compression with CompressionSimple...
+Starting compression with CompressionSimpleBetter...
+Starting compression with CompressionSimpleMax...
+Compression complete.  Moving on to CompressionMultiFast...
+Starting compression with CompressionMulti...
+Starting compression with CompressionMultiBetter...
+Starting compression with CompressionMultiMax...
+Compression complete.  Moving on to CompressionFullPowerFast...
+Starting compression with CompressionFullPower...
+Starting compression with CompressionFullPowerBetter...
+Starting compression with CompressionFullPowerMax...
+Compression complete.
+Compression Results:
+Algorithm                      :                 Time : Size
+---------                      :                 ---- : ----
+CompressionSimpleFast          :         476.479748ms : 1085880 bytes
+CompressionSimple              :         1.722374928s : 944900 bytes
+CompressionSimpleBetter        :         1.791940736s : 885192 bytes
+CompressionSimpleMax           :         1.822931302s : 885192 bytes
+CompressionMultiFast           :         2.284920555s : 1085880 bytes
+CompressionMulti               :         1.402525781s : 944900 bytes
+CompressionMultiBetter         :          1.84167011s : 885192 bytes
+CompressionMultiMax            :          1.80917974s : 885192 bytes
+CompressionFullPowerFast       :         2.264714487s : 1085880 bytes
+CompressionFullPower           :         1.362964771s : 944900 bytes
+CompressionFullPowerBetter     :         1.818037158s : 885192 bytes
+CompressionFullPowerMax        :         1.819513768s : 885192 bytes
+```
+
+So there's no savings to be had at all going with the `Max` option when it comes to raw text, as that just burns CPU.   The most interesting result is the `CompressionSimpleFast` option beat everything else on time.   When you thing about it, it makes sense.
+
+Single-stream compression algorithms don't lend themselves well to multiprocessing 
+
+
 ## Apr 19 2024
 
 So, I finally figured out why I was getting such non-deterministic results
