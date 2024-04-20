@@ -216,11 +216,34 @@ func Encoder(stream *lzmaStream, preset int, cpu_strategy int) Return {
 
 // Sets an LZMA stream up for a decoding job.
 func Decoder(stream *lzmaStream) Return {
+	var m runtime.MemStats
+	runtime.ReadMemStats(&m)
 	options := C.get_multi_options()
 	options.flags = C.uint(0)
 	options.filters = nil
-	//return Ok
-	return Return(C.lzma_stream_decoder(&stream.cStream, C.uint64_t(120<<20), C.uint32_t(0x08)))
+
+	if m.Sys < 10*1024*1024 {
+		// If there's less than 10MB, make a tiny decoder area
+		return Return(C.lzma_stream_decoder(&stream.cStream, C.uint64_t(64<<10), C.uint32_t(0x08)))
+	}
+
+	if m.Sys < 10*1024*1024 {
+		// If there's less than 50MB, make a sortatiny decoder area of 1MB
+		return Return(C.lzma_stream_decoder(&stream.cStream, C.uint64_t(1024<<10), C.uint32_t(0x08)))
+	}
+
+	if m.Sys < 512*1024*1024 {
+		// If there's less than 512MB, make a smallish decoder area of 50MB
+		return Return(C.lzma_stream_decoder(&stream.cStream, C.uint64_t(50<<20), C.uint32_t(0x08)))
+	}
+
+	if m.Sys < 1024*1024*1024 {
+		// If there's less than 1GB, make a meager decoder area of 128MB
+		return Return(C.lzma_stream_decoder(&stream.cStream, C.uint64_t(128<<20), C.uint32_t(0x08)))
+	}
+
+	//Standard decompression settings
+	return Return(C.lzma_stream_decoder(&stream.cStream, C.uint64_t(250<<20), C.uint32_t(0x08)))
 }
 
 // Starts/Stops the LZMA stream encoding/decoding job.  This is a call-chain dependent function that
