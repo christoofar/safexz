@@ -65,7 +65,7 @@ Whether running these cleanup passes is worth it entirely depends on the nature 
 
 And this is what the higher settings of `liblzma.so` essentially, more-or-less, do.   More threads don't make compression necessarily faster, but more RAM certainly will.  It does in a dramatic way.  RAM speed and the amount of it you have by and large will dominate the time spent compressing, less so on the underlying I/O media speed or the number of cores you throw at it.
 
-So for big data you're best off giving a few extra gigs of RAM to `safexz` and run it with `CompressionFullPowerBetter`.  As you can see, an 8GB VM is not going to handle compressing `debian.iso` that well.  This has VSCode running in debug mode sucking up about 4.5GB of RAM and `safexz` in the `CompressionFullPowerMax` setting has pulled down an extra 1.5GB of RAM (the `RES` column) and sent the Linux swap system into overdrive.
+So for big data you're best off giving a few extra gigs of RAM to `safexz` and run it with `CompressionFullPowerBetter`.  As you can see, an 8GB VM is not going to handle compressing `debian.iso` that well when you have the compression level cranked up.  This has VSCode running in debug mode sucking up about 4.5GB of RAM and `safexz` in the `CompressionFullPowerMax` setting has pulled down an extra 1.5GB of RAM (the `RES` column) and sent the Linux swap system into overdrive.
 ![image](https://github.com/christoofar/safexz/assets/5059144/9dbdff68-2496-4519-82a5-246fe4a9832f)
 
 
