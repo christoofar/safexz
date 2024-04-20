@@ -68,6 +68,14 @@ And this is what the higher settings of `liblzma.so` essentially, more-or-less, 
 So for big data you're best off giving a few extra gigs of RAM to `safexz` and run it with `CompressionFullPowerBetter`.  As you can see, an 8GB VM is not going to handle compressing `debian.iso` that well when you have the compression level cranked up.  This has VSCode running in debug mode sucking up about 4.5GB of RAM and `safexz` in the `CompressionFullPowerMax` setting has pulled down an extra 1.5GB of RAM (the `RES` column) and sent the Linux swap system into overdrive.
 ![image](https://github.com/christoofar/safexz/assets/5059144/9dbdff68-2496-4519-82a5-246fe4a9832f)
 
+At the other end of the spectrum are small machines, like the [Pi Zero](https://www.canakit.com/raspberry-pi-zero.html) or something even smaller than that.   The working storage for a simple Go program using `CompressionSimpleFast` is only 43K:
+
+![image](https://github.com/christoofar/safexz/assets/5059144/9a366287-9f27-4699-89bc-f812f82f2b4c)
+
+`liblzma.so` gives you tremendous flexibility where you can compress data from the smallest computers to something as monsterous as an IBM z/Series mainframe.
+
+
+
 
 
 ## Apr 19 2024
