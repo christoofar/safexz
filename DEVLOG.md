@@ -4,7 +4,7 @@
 
 If you're looking at the functions I put in `decompression.go`, I've skipped on multi-threaded decompression.   In the decompression scenario it (yet again) comes down to the working storage in RAM that will determine the decompression speed and this time output I/O will play a bigger factor as bytes in the working area need to be cleared away to make room for the compressed data coming in.
 
-For `safexz` I have set a hard maximum area of `250<<20`, or 250MB of decompression working storage.  For the original Raspberry PI 1 which has 512MB of working storage, this is sufficient without causing too much headage.
+For `safexz` I have set a hard maximum area of `250<<20`, or 250MB of decompression working storage.  For the original Raspberry PI 1 which has 512MB of working storage, `128MB` will be selected instead.  This is sufficient without causing too much headache.
 
 On the off-chance that you are using TinyGo and working on ridiculously constrained machine, I have come up with this solve, which isn't one of my prouder moments:
 
