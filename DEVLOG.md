@@ -8,7 +8,8 @@ For `safexz` I have set a hard maximum area of `250<<20`, or 250MB of decompress
 
 On the off-chance that you are using TinyGo and working on ridiculously constrained machine, I have come up with this solve, which isn't one of my prouder moments:
 
-![image](https://github.com/christoofar/safexz/assets/5059144/e1789cc9-8e8f-4280-8861-fd1ee36ef90b)
+![image](https://github.com/christoofar/safexz/assets/5059144/af67591d-9981-463d-86ae-2547bdf7755c)
+
 
 On normal VMs `liblzma` will get a very ample working area and you'll see nice I/O coming out of the streamer.  If you're trying to re-create a Commodore128 in TinyGo you'll at least get... working storage.  Of 64KB.
 
