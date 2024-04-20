@@ -13,11 +13,62 @@ import (
 )
 
 func CompressString(s string, strategy ...CompressionStrategy) (string, error) {
-	return "", nil
+	use_strategy := CompressionMulti
+	if len(strategy) > 0 {
+		use_strategy = strategy[0]
+	}
+
+	readchan := make(chan []byte, 1)
+	writechan := make(chan []byte, 1)
+
+	internal.CompressIn(readchan, writechan, int(use_strategy))
+	go func() {
+		for i := 0; i < len(s); i += internal.MAX_BUF_SIZE {
+			end := i + internal.MAX_BUF_SIZE
+			if end > len(s) {
+				end = len(s)
+			}
+			readchan <- []byte(s[i:end])
+		}
+		close(readchan)
+	}()
+
+	var compressed string
+	for data := range writechan {
+		compressed += string(data)
+	}
+
+	return compressed, nil
 }
 
 func CompressBytes(b []byte, strategy ...CompressionStrategy) ([]byte, error) {
-	return nil, nil
+	use_strategy := CompressionMulti
+	if len(strategy) > 0 {
+		use_strategy = strategy[0]
+	}
+
+	readchan := make(chan []byte, 1)
+	writechan := make(chan []byte, 1)
+
+	internal.CompressIn(readchan, writechan, int(use_strategy))
+
+	go func() {
+		for i := 0; i < len(b); i += internal.MAX_BUF_SIZE {
+			end := i + internal.MAX_BUF_SIZE
+			if end > len(b) {
+				end = len(b)
+			}
+			readchan <- b[i:end]
+		}
+		close(readchan)
+	}()
+
+	var compressed []byte
+	for data := range writechan {
+		compressed = append(compressed, data...)
+	}
+
+	return compressed, nil
 }
 
 func CompressFile(inpath string, outpath string, strategy ...CompressionStrategy) error {

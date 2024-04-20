@@ -17,7 +17,29 @@ func DecompressString(compressedString string) (string, error) {
 }
 
 func DecompressBytes(compressedBytes []byte) ([]byte, error) {
-	return nil, nil
+
+	readchan := make(chan []byte, 1)
+	writechan := make(chan []byte, 1)
+
+	internal.DecompressIn(readchan, writechan)
+
+	go func() {
+		for i := 0; i < len(compressedBytes); i += internal.MAX_BUF_SIZE {
+			end := i + internal.MAX_BUF_SIZE
+			if end > len(compressedBytes) {
+				end = len(compressedBytes)
+			}
+			readchan <- compressedBytes[i:end]
+		}
+		close(readchan)
+	}()
+
+	var decompressed []byte
+	for data := range writechan {
+		decompressed = append(decompressed, data...)
+	}
+	return decompressed, nil
+
 }
 
 func DecompressFile(input_path, output_path string) error {
