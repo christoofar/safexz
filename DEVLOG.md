@@ -11,7 +11,7 @@ On the off-chance that you are using TinyGo and working on ridiculously constrai
 ![image](https://github.com/christoofar/safexz/assets/5059144/af67591d-9981-463d-86ae-2547bdf7755c)
 
 
-On normal VMs `liblzma` will get a very ample working area and you'll see nice I/O coming out of the streamer.  If you're trying to re-create a Commodore128 in TinyGo you'll at least get... working storage.  Of 64KB.  If you're needing to push a huge amount of work through a seriously weak chipset it might make more sense to cheat and set up a helper-board with a more powerful ARM on the side and carry what needs to be decompressed across the I/O pins, then send it back to the constrained unit.
+On normal VMs `liblzma` will get a very ample working area and you'll see nice I/O coming out of the streamer.  If you're trying to re-create a Commodore128 in TinyGo you'll at least get... working storage.  Of 64KB.  If you're needing to push a huge amount of work through a seriously weak chipset it might make more sense to cheat and set up a helper-board with a more powerful ARM on the side and carry what needs to be decompressed across the I/O pins, then send it back to the constrained unit.  That at least opens the possibility for re-flashing the microcontroller from the "helper" side board.
 
 
 ## Apr 20 2024
