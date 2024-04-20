@@ -478,11 +478,11 @@ func TestCompressChain(t *testing.T) {
 	if err != nil {
 		t.Errorf("Error opening test file: %v", err)
 	}
-	f2, err := os.Create("test/canterbury-corpus/large/E.coli")
+	f2, err := os.Open("test/canterbury-corpus/large/E.coli")
 	if err != nil {
 		t.Errorf("Error creating test file: %v", err)
 	}
-	f3, err := os.Create("test/canterbury-corpus/large/world192.txt")
+	f3, err := os.Open("test/canterbury-corpus/large/world192.txt")
 	if err != nil {
 		t.Errorf("Error creating test file: %v", err)
 	}
@@ -523,7 +523,7 @@ func TestCompressChain(t *testing.T) {
 	if err != nil {
 		t.Errorf("Error getting checksum of scratch file: %v", err)
 	}
-	t.Logf("Checksum of scratch file: %v", checksum)
+	t.Logf("MD5 checksum of scratch file: %v", checksum)
 
 	// do 5 compressions and decompressions
 	for i := 0; i < 5; i++ {
@@ -532,6 +532,8 @@ func TestCompressChain(t *testing.T) {
 		if err != nil {
 			t.Errorf("Error compressing file: %v", err)
 		}
+		fi, _ := os.Stat("scratch.txt.xz")
+		t.Logf("Compressed file size: %v", fi.Size())
 
 		t.Logf("Starting decompression %v", i)
 		err = DecompressFile("scratch.txt.xz", "scratch.txt")
@@ -544,7 +546,7 @@ func TestCompressChain(t *testing.T) {
 		if err != nil {
 			t.Errorf("Error getting checksum of scratch file: %v", err)
 		}
-		t.Logf("Checksum of decompressed scratch file: %v", checksum2)
+		t.Logf("MD5 checksum of decompressed scratch file: %v", checksum2)
 
 		// compare the checksums
 		if checksum != checksum2 {
