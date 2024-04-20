@@ -36,7 +36,7 @@ CompressionFullPowerBetter     :         1.818037158s : 885192 bytes
 CompressionFullPowerMax        :         1.819513768s : 885192 bytes
 ```
 
-So there's no savings to be had at all going with the `Max` option when it comes to raw text, as that just burns CPU.  At least when it comes to the common text case sizes at least.   The most interesting result is the `CompressionSimpleFast` option beat everything else on time.   When you thing about it, it makes sense.
+So there's no savings to be had at all going with the `Max` option when it comes to raw text, as that just burns CPU.  At least when it comes to the common text case sizes at least.   The most interesting result is the `CompressionSimpleFast` option beat everything else on time.   When you think about it, it makes sense.
 
 Single-stream compression algorithms don't lend themselves well to multiprocessing because of a basic way multiprocessing on single-tasks works called `segmentation`.   Segmentation is when you break up an unworked dataset like this:
 
