@@ -1,5 +1,18 @@
 # Development Log
 
+## Why Aren't You Supporting Multi-threaded decompression?
+
+If you're looking at the functions I put in `decompression.go`, I've skipped on multi-threaded decompression.   In the decompression scenario it (yet again) comes down to the working storage in RAM that will determine the decompression speed and this time output I/O will play a bigger factor as bytes in the working area need to be cleared away to make room for the compressed data coming in.
+
+For `safexz` I have set a hard maximum area of `250<<20`, or 120MB of decompression working storage.  For the original Raspberry PI 1 which has 512MB of working storage, this is sufficient without causing too much headage.
+
+On the off-chance that you are using TinyGo and working on ridiculously constrained machine, I have come up with this solve, which isn't one of my prouder moments:
+
+![image](https://github.com/christoofar/safexz/assets/5059144/e1789cc9-8e8f-4280-8861-fd1ee36ef90b)
+
+On normal VMs `liblzma` will get a very ample working area and you'll see nice I/O coming out of the streamer.  If you're trying to re-create a Commodore128 in TinyGo you'll at least get... working storage.  Of 64KB.
+
+
 ## Apr 20 2024
 
 Made a quick prover to see how the different canned compression strategies pan out.  This is over a puny 6-core dev VM so it will naturally be slow, thus a better comparison of the multithreaded behaviors of `liblzma.so` can be spotted.  Compressing the King James Bible yields these results (The results as they come out are unsorted, so I've resorted them here):
@@ -36,14 +49,51 @@ CompressionFullPowerBetter     :         1.818037158s : 885192 bytes
 CompressionFullPowerMax        :         1.819513768s : 885192 bytes
 ```
 
-So there's no savings to be had at all going with the `Max` option when it comes to raw text, as that just burns CPU.   The most interesting result is the `CompressionSimpleFast` option beat everything else on time.   When you thing about it, it makes sense.
+So there's no savings to be had at all going with the `Max` option when it comes to raw text, as that just burns CPU.  At least when it comes to the common text case sizes at least.   The most interesting result is the `CompressionSimpleFast` option beat everything else on time.   When you think about it, it makes sense.
 
-Single-stream compression algorithms don't lend themselves well to multiprocessing 
+Single-stream compression algorithms don't lend themselves well to multiprocessing because of a basic way multiprocessing on single-tasks works called `segmentation`.   Segmentation is when you break up an unworked dataset like this:
+
+```
++--------------------+-------------------+-------------------+
++    Data Part 1     +    Data Part 2    +     Data Part 3   +
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+```
+Then you would assign coroutines or whole OS process threads to work on all three parts, then stitch the results back into one post-process dataset.
+
+You can segment the data again into sub-sub segments like this if you have lots of resources:
+```
++--------------------+-------------------+-------------------+
++  Block 1 + Block 2 + Block 3 + Block 4 + Block 5 + Block 6 +
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+```
+Segmentation eliminates the problem of shared cooperative memory and the need to lock sections of memory to prevent collisions, but now you've created areas of the dataset where repetitive data that crosses a block boundary might escape the attention of the compression routine each thread is running:
+```
++--------------------+-------------------+-------------------+
++ ----> [ Repetitive data ] Data Part 2  +     Data Part 3   +
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+```
+The simplist answer to this conundrum is to load more of the data to be compressed into working storage (RAM), so that expensive cleanup passes and/or multi-segment sized sweeper passes can examine the finished areas of the compression stream in the working storage and correct areas that escaped attention of the standard compression scheme working at the smallest segment size.
+
+Whether running these cleanup passes is worth it entirely depends on the nature of the data underneath.  Large datasets with huge repeating page blocks will certainly pass across the compression window if it's large enough, but the compressed result will likely compress much further if the repeating patterns are seen again much later in the datastream, which would get pickup up by a pass using a larger inspection size.
+
+And this is what the higher settings of `liblzma.so` essentially, more-or-less, do.   More threads don't make compression necessarily faster, but more RAM certainly will.  It does in a dramatic way.  RAM speed and the amount of it you have by and large will dominate the time spent compressing, less so on the underlying I/O media speed or the number of cores you throw at it.
+
+So for big data you're best off giving a few extra gigs of RAM to `safexz` and run it with `CompressionFullPowerBetter`.  As you can see, an 8GB VM is not going to handle compressing `debian.iso` that well when you have the compression level cranked up.  This has VSCode running in debug mode sucking up about 4.5GB of RAM and `safexz` in the `CompressionFullPowerMax` setting has pulled down an extra 1.5GB of RAM (the `RES` column) and sent the Linux swap system into overdrive.
+![image](https://github.com/christoofar/safexz/assets/5059144/9dbdff68-2496-4519-82a5-246fe4a9832f)
+
+At the other end of the spectrum are small machines, like the [Pi Zero](https://www.canakit.com/raspberry-pi-zero.html) or something even smaller than that.   The working storage for a simple Go program using `CompressionSimpleFast` is only 43K:
+
+![image](https://github.com/christoofar/safexz/assets/5059144/9a366287-9f27-4699-89bc-f812f82f2b4c)
+
+`liblzma.so` gives you tremendous flexibility where you can compress data from the smallest computers to something as monsterous as an IBM z/Series mainframe.
+
+
+
 
 
 ## Apr 19 2024
 
-So, I finally figured out why I was getting such non-deterministic results
+So, I finally figured out why I was getting such non-deterministic results.  This is what I did to fix it. 
 ![image](https://github.com/christoofar/safexz/assets/5059144/f4136c9c-3742-4262-9a26-03eacd338ac0)
 
 `readbuf` is dirty after the read.  I thought that this was a simple reusable type but it's got some distinct behavior when used with `file.Read()` because of the syscall that occurs.   To fix this, I pull out what was read into a clean byte slice and send that into the `chan` for processing.
