@@ -2,6 +2,8 @@
 // input and output channels.
 package internal
 
+// Connects the input and output channels to the lzma compression function.  When the output channel is closed
+// then the compression process is complete.  You must close the input channel to signal the end of the input stream.
 func CompressIn(in chan []byte, out chan []byte, strategy int) {
 
 	// The reason for the nested go routines is to isolate the unsafeBuffer
@@ -13,6 +15,8 @@ func CompressIn(in chan []byte, out chan []byte, strategy int) {
 
 }
 
+// Connects the input and output channels to the lzma decompression function.  When the output channel is closed
+// then the decompression process is complete.  You must close the input channel to signal the end of the input stream.
 func DecompressIn(in chan []byte, out chan []byte) {
 
 	// The reason for the nested go routines is to isolate the unsafeBuffer
