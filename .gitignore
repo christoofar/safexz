@@ -29,3 +29,4 @@ safexz
 cmd/main
 cmd/cmd
 cmd/output
+cmd/speedtest/speedtest
