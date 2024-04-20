@@ -80,7 +80,7 @@ At the other end of the spectrum are small machines, like the [Pi Zero](https://
 
 ## Apr 19 2024
 
-So, I finally figured out why I was getting such non-deterministic results
+So, I finally figured out why I was getting such non-deterministic results.  This is what I did to fix it. 
 ![image](https://github.com/christoofar/safexz/assets/5059144/f4136c9c-3742-4262-9a26-03eacd338ac0)
 
 `readbuf` is dirty after the read.  I thought that this was a simple reusable type but it's got some distinct behavior when used with `file.Read()` because of the syscall that occurs.   To fix this, I pull out what was read into a clean byte slice and send that into the `chan` for processing.
