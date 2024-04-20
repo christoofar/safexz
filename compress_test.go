@@ -1,8 +1,13 @@
 package safexz
 
 import (
+	"crypto/md5"
+	"encoding/hex"
+	"io"
+	"math/rand"
 	"os"
 	"testing"
+	"time"
 )
 
 // TestCompressString tests the CompressString function
@@ -16,7 +21,7 @@ func TestCompressString(t *testing.T) {
 	}
 }
 
-// TestCompressStringSimple tests the CompressString function
+// TestCompressBytes tests the CompressBytes function
 func TestCompressBytes(t *testing.T) {
 	compressedData, err := CompressBytes([]byte("Hello, World!Hello, World!Hello, World!Hello, World!Hello, World!Hello, World!"))
 	if err != nil {
@@ -27,6 +32,7 @@ func TestCompressBytes(t *testing.T) {
 	}
 }
 
+// TestCompressFile tests the CompressFile function
 func TestCompressFile(t *testing.T) {
 	// Create a test file
 	f, err := os.Create("test.txt")
@@ -462,4 +468,112 @@ func TestCompressFileFullPowerMax(t *testing.T) {
 	// Clean up
 	os.Remove("test.txt")
 	os.Remove("test.txt.xz")
+}
+
+// TestCompressChain creates a scratch file using /test/large text files, takes a checksum then runs a chain of compressions
+// and decompressions of the file, making sure none of the bytes moves or gets destroyed.
+func TestCompressChain(t *testing.T) {
+	// get the scratch files
+	f1, err := os.Open("test/canterbury-corpus/large/bible.txt")
+	if err != nil {
+		t.Errorf("Error opening test file: %v", err)
+	}
+	f2, err := os.Create("test/canterbury-corpus/large/E.coli")
+	if err != nil {
+		t.Errorf("Error creating test file: %v", err)
+	}
+	f3, err := os.Create("test/canterbury-corpus/large/world192.txt")
+	if err != nil {
+		t.Errorf("Error creating test file: %v", err)
+	}
+
+	// generate a random number from 1-3
+	rand.Seed(time.Now().UnixNano())
+	randomNumber := rand.Intn(3) + 1
+
+	// build a scratch file
+	t.Log("Building scratch file from canterbury-corpus/large files")
+	scratch, err := os.Create("scratch.txt")
+	if err != nil {
+		t.Errorf("Error creating scratch file: %v", err)
+	}
+	for i := 0; i < 50; i++ {
+		switch randomNumber {
+		case 1:
+			f1.Seek(0, 0)
+			f1.WriteTo(scratch)
+		case 2:
+			f2.Seek(0, 0)
+			f2.WriteTo(scratch)
+		case 3:
+			f3.Seek(0, 0)
+			f3.WriteTo(scratch)
+		}
+		randomNumber = rand.Intn(3) + 1
+	}
+
+	// close the files, start the compressions
+	f1.Close()
+	f2.Close()
+	f3.Close()
+	scratch.Close()
+
+	// get the checksum of the scratch file
+	checksum, err := ChecksumFile("scratch.txt")
+	if err != nil {
+		t.Errorf("Error getting checksum of scratch file: %v", err)
+	}
+	t.Logf("Checksum of scratch file: %v", checksum)
+
+	// do 5 compressions and decompressions
+	for i := 0; i < 5; i++ {
+		t.Logf("Starting compression %v", i)
+		err = CompressFile("scratch.txt", "scratch.txt.xz", CompressionFullPowerFast)
+		if err != nil {
+			t.Errorf("Error compressing file: %v", err)
+		}
+
+		t.Logf("Starting decompression %v", i)
+		err = DecompressFile("scratch.txt.xz", "scratch.txt")
+		if err != nil {
+			t.Errorf("Error decompressing file: %v", err)
+		}
+
+		// get the checksum of the scratch file
+		checksum2, err := ChecksumFile("scratch.txt")
+		if err != nil {
+			t.Errorf("Error getting checksum of scratch file: %v", err)
+		}
+		t.Logf("Checksum of decompressed scratch file: %v", checksum2)
+
+		// compare the checksums
+		if checksum != checksum2 {
+			t.Errorf("Checksums do not match after compression and decompression")
+		}
+
+		if i != 4 {
+			t.Log("Compressing again.")
+		}
+	}
+
+	os.Remove("scratch.txt")
+	os.Remove("scratch.txt.xz")
+
+}
+
+// ChecksumFile returns the MD5 checksum of a file
+func ChecksumFile(s string) (string, error) {
+	file, err := os.Open(s)
+	if err != nil {
+		return "", err
+	}
+	defer file.Close()
+
+	hash := md5.New()
+	if _, err := io.Copy(hash, file); err != nil {
+		return "", err
+	}
+
+	checksum := hex.EncodeToString(hash.Sum(nil))
+	return checksum, nil
 }

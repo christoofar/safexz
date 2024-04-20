@@ -126,6 +126,13 @@ func CompressFileWithProgress(inpath string, outpath string, progress func(uint6
 		}
 	}
 
+	// If the outfpath exists, delete it
+	if _, err := os.Stat(outpath); err == nil {
+		err := os.Remove(outpath)
+		if err != nil {
+			return err
+		}
+	}
 	outfile, err := os.Create(outpath)
 	if err != nil {
 		return err
