@@ -356,6 +356,9 @@ func compressChanStream(in <-chan []byte, out chan<- []byte, strategy int, errch
 			}
 		}
 
+		// The heart of lzma.   You basically kick this function over and over like a washing machine agitator to
+		// move the data throughe the compression process.  Each time you kick it, you read the return code looking for
+		// a StreamEnd or an error.
 		ret = EncodeDecodeJobAction(stream, action)
 		if ret != Ok && ret != StreamEnd {
 			println("error in encoding/decoding job. %s", ret)
