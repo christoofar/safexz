@@ -2,7 +2,7 @@
 
 ## Apr 21 2024
 
-`liblzma` will scream if you send a max memory recommendation that is do small.  So, I had to rework the decompression sizes to this:
+`liblzma` will scream if you send a max memory recommendation that is too small.  So, I had to rework the decompression sizes to this:
 ```go
 	if m.Sys < 512*1024*1024 {
 		// If there's less than 512MB, make a smallish decoder area of 50MB
