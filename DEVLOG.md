@@ -88,7 +88,11 @@ At the other end of the spectrum are small machines, like the [Pi Zero](https://
 
 `liblzma.so` gives you tremendous flexibility where you can compress data from the smallest computers to something as monsterous as an IBM z/Series mainframe.
 
+### Why strategy option 9 is never a good idea
 
+On large files (1GB and up) you'll never assign the amount of RAM that is required to keep your process from spilling into the swap area, and lzma option 8 is ready very memory-hungry (and slow) as it is.  You're welcome to add the `extreme` enum class to `CompressionStrategy` but since I can't ever see a logical use for it in the software that I write for a living, I've left it out.   Mostly because I have no energy to construct tests that fit in the default VSCode 30 second test timeout most people leave as their default setting when running `go test` from the GUI.
+
+![image](https://github.com/christoofar/safexz/assets/5059144/780866e0-6515-4020-b0bb-67acda1a2f74)
 
 
 
