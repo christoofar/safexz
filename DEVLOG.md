@@ -4,13 +4,14 @@
 
 If you're looking at the functions I put in `decompression.go`, I've skipped on multi-threaded decompression.   In the decompression scenario it (yet again) comes down to the working storage in RAM that will determine the decompression speed and this time output I/O will play a bigger factor as bytes in the working area need to be cleared away to make room for the compressed data coming in.
 
-For `safexz` I have set a hard maximum area of `250<<20`, or 120MB of decompression working storage.  For the original Raspberry PI 1 which has 512MB of working storage, this is sufficient without causing too much headage.
+For `safexz` I have set a hard maximum area of `250<<20`, or 250MB of decompression working storage.  For the original Raspberry PI 1 which has 512MB of working storage, `50MB` will be selected instead.  This is sufficient without causing too much headache, and stays on the conservative side so that you can continue execution of your program and not worry too much about whether the background decoder job is hindering you.
 
 On the off-chance that you are using TinyGo and working on ridiculously constrained machine, I have come up with this solve, which isn't one of my prouder moments:
 
-![image](https://github.com/christoofar/safexz/assets/5059144/e1789cc9-8e8f-4280-8861-fd1ee36ef90b)
+![image](https://github.com/christoofar/safexz/assets/5059144/af67591d-9981-463d-86ae-2547bdf7755c)
 
-On normal VMs `liblzma` will get a very ample working area and you'll see nice I/O coming out of the streamer.  If you're trying to re-create a Commodore128 in TinyGo you'll at least get... working storage.  Of 64KB.
+
+On normal VMs `liblzma` will get a very ample working area and you'll see nice I/O coming out of the streamer.  If you're trying to re-create a Commodore128 in TinyGo you'll at least get... working storage.  Of 64KB.  If you're needing to push a huge amount of work through a seriously weak chipset it might make more sense to cheat and set up a helper-board with a more powerful ARM on the side and carry what needs to be decompressed across the I/O pins, then send it back to the constrained unit.  That at least opens the possibility for re-flashing the microcontroller from the "helper" side board, then putting the helper board into whatever low-power-consumption mode that you can when it's not assisting the microcontroller.
 
 
 ## Apr 20 2024
@@ -87,7 +88,11 @@ At the other end of the spectrum are small machines, like the [Pi Zero](https://
 
 `liblzma.so` gives you tremendous flexibility where you can compress data from the smallest computers to something as monsterous as an IBM z/Series mainframe.
 
+### Why strategy option 9 is never a good idea
 
+On large files (1GB and up) you'll never assign the amount of RAM that is required to keep your process from spilling into the swap area, and lzma option 8 is already very memory-hungry (and slow) as it is.  You're welcome to add the `extreme` enum class to `CompressionStrategy` but since I can't ever see a logical use for it in the software that I write for a living, I've left it out.   Mostly because I have no energy to construct tests that fit in the default VSCode 30 second test timeout most people leave as their default setting when running `go test` from the GUI.
+
+![image](https://github.com/christoofar/safexz/assets/5059144/780866e0-6515-4020-b0bb-67acda1a2f74)
 
 
 
