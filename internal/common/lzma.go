@@ -293,7 +293,7 @@ func decompressChanStream(in <-chan []byte, out chan<- []byte) {
 	}
 }
 
-func compressChanStream(in <-chan []byte, out chan<- []byte, strategy int) {
+func compressChanStream(in <-chan []byte, out chan<- []byte, strategy int, errchan chan<- bool) {
 	stream := createStream()
 	defer stream.Close()
 
@@ -340,6 +340,7 @@ func compressChanStream(in <-chan []byte, out chan<- []byte, strategy int) {
 				out <- data
 			} else {
 				close(out)
+				errchan <- false
 				return
 			}
 		}
@@ -357,7 +358,8 @@ func compressChanStream(in <-chan []byte, out chan<- []byte, strategy int) {
 
 		ret = EncodeDecodeJobAction(stream, action)
 		if ret != Ok && ret != StreamEnd {
-			panic(fmt.Errorf("error in encoding/decoding job. %s", ret))
+			println("error in encoding/decoding job. %s", ret)
+			errchan <- true
 		}
 		out <- stream.Pop()
 	}

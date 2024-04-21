@@ -101,7 +101,12 @@ func CompressFileWithProgress(inpath string, outpath string, progress func(uint6
 	readchan := make(chan []byte, 1)
 	writechan := make(chan []byte, 1)
 
-	internal.CompressIn(readchan, writechan, int(use_strategy))
+	go func() {
+		err := internal.CompressIn(readchan, writechan, int(use_strategy))
+		if err != nil {
+			fmt.Println("Error compressing data:", err)
+		}
+	}()
 	var readCount uint64
 	var writeCount uint64
 
