@@ -227,7 +227,7 @@ func Decoder(stream *lzmaStream) Return {
 		return Return(C.lzma_stream_decoder(&stream.cStream, C.uint64_t(64<<10), C.uint32_t(0x08)))
 	}
 
-	if m.Sys < 10*1024*1024 {
+	if m.Sys < 50*1024*1024 {
 		// If there's less than 50MB, make a sortatiny decoder area of 1MB
 		return Return(C.lzma_stream_decoder(&stream.cStream, C.uint64_t(1024<<10), C.uint32_t(0x08)))
 	}
@@ -305,13 +305,13 @@ func compressChanStream(in <-chan []byte, out chan<- []byte, strategy int) {
 		setting = 4
 	//case CompressionSimpleFast, CompressionMultiFast, CompressionFullPowerFast:
 	case 1, 5, 9:
-		setting = 2
+		setting = 1
 	//case CompressionSimpleBetter, CompressionMultiBetter, CompressionFullPowerBetter:
 	case 2, 6, 10:
-		setting = 7
+		setting = 6
 	//case CompressionSimpleMax, CompressionMultiMax, CompressionFullPowerMax:
 	case 3, 7, 11:
-		setting = 9
+		setting = 8
 	}
 
 	// 0 = single threaded, 1 = half the number of CPUs, 2 = all CPUs
