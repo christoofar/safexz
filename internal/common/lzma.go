@@ -222,16 +222,6 @@ func Decoder(stream *lzmaStream) Return {
 	options.flags = C.uint(0)
 	options.filters = nil
 
-	if m.Sys < 10*1024*1024 {
-		// If there's less than 10MB, make a tiny decoder area
-		return Return(C.lzma_stream_decoder(&stream.cStream, C.uint64_t(64<<10), C.uint32_t(0x08)))
-	}
-
-	if m.Sys < 50*1024*1024 {
-		// If there's less than 50MB, make a sortatiny decoder area of 1MB
-		return Return(C.lzma_stream_decoder(&stream.cStream, C.uint64_t(1024<<10), C.uint32_t(0x08)))
-	}
-
 	if m.Sys < 512*1024*1024 {
 		// If there's less than 512MB, make a smallish decoder area of 50MB
 		return Return(C.lzma_stream_decoder(&stream.cStream, C.uint64_t(50<<20), C.uint32_t(0x08)))

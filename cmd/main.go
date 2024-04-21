@@ -1,38 +1,54 @@
 package main
 
 import (
-	"fmt"
+	"io"
+	"os"
 
 	"github.com/christoofar/safexz"
 )
 
 func main() {
 
+	f, _ := os.Open("/home/christoofar/test.txt.xz")
+
+	reader := safexz.NewReader(f)
+	buffer := make([]byte, 1024)
+	for {
+		n, err := reader.Read(buffer)
+		if n > 0 {
+			os.Stdout.Write(buffer[:n])
+		}
+		if err == io.EOF {
+			break
+		}
+
+	}
+
 	// var pass uint64
 	// p := message.NewPrinter(language.English)
 
-	println("Starting compression...")
+	// println("Starting compression...")
 
-	compressedData, err := safexz.CompressBytes([]byte("Hello, World!Hello, World!Hello, World!Hello, World!Hello, World!Hello, World!"))
-	if err != nil {
-		fmt.Println("Error compressing string:", err)
-		return
-	}
-	fmt.Println("Compressed string 'Hello, World!':", compressedData)
+	// compressedData, err := safexz.CompressBytes([]byte("Hello, World!Hello, World!Hello, World!Hello, World!Hello, World!Hello, World!"))
+	// if err != nil {
+	// 	fmt.Println("Error compressing string:", err)
+	// 	return
+	// }
+	// fmt.Println("Compressed string 'Hello, World!':", compressedData)
 
-	compressedString, err := safexz.CompressString("Hello, World!Hello, World!Hello, World!Hello, World!Hello, World!Hello, World!")
-	if err != nil {
-		fmt.Println("Error compressing string:", err)
-		return
-	}
-	fmt.Println("Compressed string 'Hello, World!':", []byte(compressedString))
+	// compressedString, err := safexz.CompressString("Hello, World!Hello, World!Hello, World!Hello, World!Hello, World!Hello, World!")
+	// if err != nil {
+	// 	fmt.Println("Error compressing string:", err)
+	// 	return
+	// }
+	// fmt.Println("Compressed string 'Hello, World!':", []byte(compressedString))
 
-	decompressedBytes, err := safexz.DecompressBytes(compressedData)
-	if err != nil {
-		fmt.Println("Error decompressing bytes:", err)
-		return
-	}
-	fmt.Println("Decompressed bytes into string for hello world:", string(decompressedBytes))
+	// decompressedBytes, err := safexz.DecompressBytes(compressedData)
+	// if err != nil {
+	// 	fmt.Println("Error decompressing bytes:", err)
+	// 	return
+	// }
+	// fmt.Println("Decompressed bytes into string for hello world:", string(decompressedBytes))
 
 	// for {
 	// 	pass++
