@@ -41,7 +41,7 @@ func (w *XZWriter) Write(p []byte) (n int, err error) {
 	// Send the data to the compressor
 	w.inputchan <- p
 
-	// All we can do here is acknowldedge that we wrote the data.  Which is what the ABI expects you to say here.
+	// All we can do here is acknowledge that we wrote the data.  Which is what the ABI expects you to say here.
 	// The actual compression is happening in a separate go routine.
 	// God do I hate the ByteReader/ByteWriter pattern, but it's what the ABI expects.
 	return len(p), nil
