@@ -1,5 +1,5 @@
-// Exposes the internal functions of lzma as a construction of calls requiring streaming
-// input and output channels.
+/* trunk-ignore-all(golangci-lint/typecheck) */
+// Description: This file contains the functions that connect the input and output channels to the lzma compression and decompression functions.
 package internal
 
 import "fmt"
@@ -13,7 +13,7 @@ func CompressIn(in chan []byte, out chan []byte, strategy int) error {
 	// The reason for the nested go routines is to isolate the unsafeBuffer
 	go func(input chan []byte, output chan []byte, strategy int) {
 		go func(receive chan []byte, sender chan []byte, strategy int) {
-			compressChanStream(receive, sender, strategy, errchan)
+			CompressChanStream(receive, sender, strategy, errchan)
 		}(input, output, strategy)
 	}(in, out, strategy)
 
@@ -31,7 +31,7 @@ func DecompressIn(in chan []byte, out chan []byte) {
 	// The reason for the nested go routines is to isolate the unsafeBuffer
 	go func(input chan []byte, output chan []byte) {
 		go func(receive chan []byte, sender chan []byte) {
-			decompressChanStream(receive, sender)
+			DecompressChanStream(receive, sender)
 		}(input, output)
 	}(in, out)
 

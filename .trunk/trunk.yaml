@@ -26,3 +26,6 @@ lint:
     - osv-scanner@1.7.2
     - prettier@3.2.5
     - trufflehog@3.71.0
+tools:
+  enabled:
+    - cspell@8.7.0
