@@ -21,7 +21,7 @@ type XZWriter struct {
 func (w *XZWriter) Write(p []byte) (n int, err error) {
 	if !w.started {
 		w.done = make(chan bool)
-		// Start the compessor.  This has to be done in a goroutine here because we will hang execution (internals is written to use goroutnes to stream)
+		// Start the compessor.  This has to be done in a goroutine here because we will hang execution (internals is written to use gor to stream)
 		go func() {
 			internal.CompressIn(w.inputchan, w.outputchan, int(w.Strategy))
 		}()
