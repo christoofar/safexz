@@ -3,7 +3,7 @@ package safexz
 import (
 	"io"
 
-	internal "github.com/christoofar/safexz/internal/common"
+	internal "github.com/christoofar/safexz/internal"
 )
 
 // XZReader reads an LZMA1 or LZMA2 compressed stream from the supplied source and yields the compressed data into a byte slice.  When the end of
