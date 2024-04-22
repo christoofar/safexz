@@ -4,6 +4,7 @@
 package safexz
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"os"
@@ -122,10 +123,76 @@ func DecompressFileWithProgress(inpath, outpath string, progress func(uint64, ui
 	return nil
 }
 
+// DecompressFileToMemory reads a file from the filesystem and decompresses it into memory as a byte slice buffer.
+// This is useful for small files that you want to decompress and then work with in memory, such as scanning compressed logs.
 func DecompressFileToMemory(path string) ([]byte, error) {
-	return nil, nil
+
+		// Check the file extension
+		extension := filepath.Ext(path)
+		fileExtension := extension[1:]
+		if fileExtension != "xz" {
+			return []byte{}, fmt.Errorf("the input file [%s] should probably have an xz extension, can you go look?", path)
+		}
+
+		f, err := os.Open(path)
+		if err != nil {
+			return []byte{}, err
+		}
+
+	inputchan := make(chan []byte, 1)
+	outputchan := make(chan []byte, 1)
+
+	go func() {
+		internal.DecompressIn(inputchan, outputchan)
+	}()
+
+	readbuf := make([]byte, internal.MAX_BUF_SIZE)
+	for {
+		bytes, err := f.Read(readbuf)
+		if err != nil {
+			close(inputchan)
+			break
+		}
+		inputchan <- readbuf[:bytes]
+	}
+
+	outputbuf := bytes.Buffer{}
+	for data := range outputchan {
+		_, err := outputbuf.Write(data)
+		if err != nil {
+			return []byte{}, err
+		}
+	}
+
+	return outputbuf.Bytes(), nil
 }
 
+// DecompressStream skips a call to io.Copy() by just compressing whatever stream you put in the
+// input reader and writing it to the output writer.
 func DecompressStream(input io.Reader, output io.Writer) error {
+	inputchan := make(chan []byte, 1)
+	outputchan := make(chan []byte, 1)
+
+	go func() {
+		internal.DecompressIn(inputchan, outputchan)
+	}()
+
+	readbuf := make([]byte, internal.MAX_BUF_SIZE)
+	for {
+		bytes, err := input.Read(readbuf)
+		if err != nil {
+			close(inputchan)
+			break
+		}
+		inputchan <- readbuf[:bytes]
+	}
+
+	for data := range outputchan {
+		_, err := output.Write(data)
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
 }

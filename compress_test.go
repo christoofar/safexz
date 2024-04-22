@@ -1,6 +1,7 @@
 package safexz
 
 import (
+	"bytes"
 	"crypto/md5"
 	"encoding/hex"
 	"io"
@@ -30,6 +31,146 @@ func TestCompressBytes(t *testing.T) {
 	if len(compressedData) == 0 {
 		t.Errorf("Compressed data is empty")
 	}
+}
+
+// TestCompressToStream tests the CompressToStream function, which is essentially the same as CompressBytes but
+// this does an in-memory translate from one stream to another, saving you from writing a read-write loop and calling io.Copy
+func TestCompressToStream(t *testing.T) {
+	teststring := "Hello, World!Hello, World!Hello, World!Hello, World!Hello, World!Hello, World!"
+	inputbuffer := bytes.NewBufferString(teststring)
+	compressedoutputbuffer := new(bytes.Buffer);
+	decompressoutputbuffer := new(bytes.Buffer)
+
+	err := CompressStream(inputbuffer, compressedoutputbuffer)
+	if err != nil {
+		t.Errorf("Error compressing stream: %v", err)
+	}
+
+	if len(compressedoutputbuffer.Bytes()) == 0 {
+		t.Errorf("Compressed data is empty")
+	}
+
+	err = DecompressStream(compressedoutputbuffer, decompressoutputbuffer)
+	if err != nil {
+		t.Errorf("Error decompressing stream: %v", err)
+	}
+
+	// Compare the strings
+	if teststring != decompressoutputbuffer.String() {
+		t.Errorf("Decompressed string does not match original string")
+	}
+
+}
+
+// TestCompressToMemory tests the CompressToMemory function, which is essentially the same as CompressBytes but
+// this one takes care of pulling up the file from disk and compressing it on the fly for you.
+func TestCompressToMemory(t *testing.T) {
+	// Create a test file
+	f, err := os.Create("test.txt")
+	if err != nil {
+		t.Errorf("Error creating test file: %v", err)
+	}
+	// Write 1000 "Hello, World!" strings to the file
+	for i := 0; i < 1000; i++ {
+		f.WriteString("Hello, World! ")
+	}
+	f.Close()
+
+	// Compress the file
+	compressedData, err := CompressFileToMemory("test.txt")
+	if err != nil {
+		t.Errorf("Error compressing file: %v", err)
+	}
+	if len(compressedData) == 0 {
+		t.Errorf("Compressed data is empty")
+	}
+	if len(compressedData) != 140 {
+		t.Error("Compressed data is not 140 bytes, it is", len(compressedData))
+	}
+
+	// Clean up
+	os.Remove("test.txt")
+}
+
+// CompressToMemoryDecompressToMemory tests the CompressToMemory and DecompressToBytes functions together
+func TestCompressToMemoryDecompressToBytes(t *testing.T) {
+	// Create a test file
+	f, err := os.Create("test.txt")
+	if err != nil {
+		t.Errorf("Error creating test file: %v", err)
+	}
+	// Write 1000 "Hello, World!" strings to the file
+	for i := 0; i < 1000; i++ {
+		f.WriteString("Hello, World! ")
+	}
+	f.Close()
+
+	// Compress the file
+	compressedData, err := CompressFileToMemory("test.txt")
+	if err != nil {
+		t.Errorf("Error compressing file: %v", err)
+	}
+	if len(compressedData) == 0 {
+		t.Errorf("Compressed data is empty")
+	}
+	if len(compressedData) != 140 {
+		t.Error("Compressed data is not 140 bytes, it is", len(compressedData))
+	}
+
+	// Decompress the data
+	decompressedData, err := DecompressBytes(compressedData)
+	if err != nil {
+		t.Errorf("Error decompressing data: %v", err)
+	}
+	if len(decompressedData) == 0 {
+		t.Errorf("Decompressed data is empty")
+	}
+	if len(decompressedData) != 14000 {
+		t.Error("Decompressed data is not 14000 bytes, it is", len(decompressedData))
+	}
+
+	// Clean up
+	os.Remove("test.txt")
+}
+
+// TestCompressToFileDecompressToMemory tests the CompressToFile and DecompressToMemory functions together.
+// Yes, DecompressBytes is sitting right there, but decomp to memory is a convenience function so you don't have
+// call os.Open yourself.
+func TestCompressToFileDecompressToMemory(t *testing.T) {
+	// Create a test file
+	f, err := os.Create("test.txt")
+	if err != nil {
+		t.Errorf("Error creating test file: %v", err)
+	}
+	// Write 1000 "Hello, World!" strings to the file
+	for i := 0; i < 1000; i++ {
+		f.WriteString("Hello, World! ")
+	}
+	f.Close()
+
+	// Compress the file
+	err = CompressFile("test.txt", "test.txt.xz")
+	if err != nil {
+		t.Errorf("Error compressing file: %v", err)
+	}
+
+	// Remove the original file
+	os.Remove("test.txt")
+
+	// Demcompress the XZ file straight to memory
+	decompressedData, err := DecompressFileToMemory("test.txt.xz")
+	if err != nil {
+		t.Errorf("Error decompressing file: %v", err)
+	}
+	if len(decompressedData) == 0 {
+		t.Errorf("Decompressed data is empty")
+	}
+	if len(decompressedData) != 14000 {
+		t.Error("Decompressed data is not 14000 bytes, it is", len(decompressedData))
+	}
+
+	// Remove the compressed test file
+	os.Remove("test.txt.xz")
 }
 
 // TestCompressFile tests the CompressFile function
