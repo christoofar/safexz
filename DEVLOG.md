@@ -1,5 +1,29 @@
 # Development Log
 
+## Apr 21 2024
+
+`liblzma` will scream if you send a max memory recommendation that is too small.  So, I had to rework the decompression sizes to this:
+```go
+	if m.Sys < 512*1024*1024 {
+		// If there's less than 512MB, make a smallish decoder area of 50MB
+		return Return(C.lzma_stream_decoder(&stream.cStream, C.uint64_t(50<<20), C.uint32_t(0x08)))
+	}
+
+	if m.Sys < 1024*1024*1024 {
+		// If there's less than 1GB, make a meager decoder area of 128MB
+		return Return(C.lzma_stream_decoder(&stream.cStream, C.uint64_t(128<<20), C.uint32_t(0x08)))
+	}
+
+	//Standard decompression settings
+	return Return(C.lzma_stream_decoder(&stream.cStream, C.uint64_t(250<<20), C.uint32_t(0x08)))
+```
+
+If you are using the `Fast` option it's never going to go anywhere near these sizes, but you will have to be careful on small environments nonetheless.
+
+I have a working `io.Reader` done and committed.  And let me just say [how much I hate the io.Reader](https://gist.github.com/christoofar/29e8a7edda716642c11934dfba170c3c) and everything that resembles it.  I added some neat computer history for you about stream processing so you can kinda understand where I am coming from.
+
+
+
 ## Why Aren't You Supporting Multi-threaded decompression?
 
 If you're looking at the functions I put in `decompression.go`, I've skipped on multi-threaded decompression.   In the decompression scenario it (yet again) comes down to the working storage in RAM that will determine the decompression speed and this time output I/O will play a bigger factor as bytes in the working area need to be cleared away to make room for the compressed data coming in.
