@@ -6,6 +6,8 @@ import (
 	internal "github.com/christoofar/safexz/internal/common"
 )
 
+// XZReader reads an LZMA1 or LZMA2 compressed stream from the supplied source and yields the compressed data into a byte slice.  When the end of
+// the compressed stream is reached, Read will return io.EOF.
 type XZReader struct {
 	io.Reader
 	inputchan  chan []byte
@@ -13,6 +15,7 @@ type XZReader struct {
 	started    bool
 }
 
+// Read reads an LZMA1 or LZMA2 compressed stream from the supplied soure and yields the compressed data into a byte slice.
 func (r *XZReader) Read(p []byte) (n int, err error) {
 	if !r.started {
 		// Start moving the reader data into the decompressor
@@ -27,9 +30,9 @@ func (r *XZReader) Read(p []byte) (n int, err error) {
 				r.inputchan <- data[:n]
 			}
 		}()
-		r.started = true
 		// Start the decompressor
 		internal.DecompressIn(r.inputchan, r.outputchan)
+		r.started = true
 	}
 	// Get a 1024-byte block of data from the decompressor.  Read has to be called again to get the next block.
 	data, ok := <-r.outputchan
@@ -43,7 +46,7 @@ func (r *XZReader) Read(p []byte) (n int, err error) {
 // Close closes the reader and the underlying channels.
 func (r *XZReader) Close() error {
 	// The underying channels close themselves and the memory grabbed by C is freed internally,
-	// so we really don't need to do anything here.   It's just good practicy to have a close method.
+	// so we really don't need to do anything here.   It's just good practice to have a close method.
 	return nil
 }
 

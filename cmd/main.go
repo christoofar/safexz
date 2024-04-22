@@ -1,7 +1,6 @@
 package main
 
 import (
-	"io"
 	"os"
 
 	"github.com/christoofar/safexz"
@@ -9,20 +8,28 @@ import (
 
 func main() {
 
-	f, _ := os.Open("/home/christoofar/test.txt.xz")
+	uncompressed := "This is some uncompressed text that I want to store.  It will probably not compress very well because it has unique words and is not very long."
+	xzfile, _ := os.Create("/home/christoofar/mytest.txt.xz")
 
-	reader := safexz.NewReader(f)
-	buffer := make([]byte, 1024)
-	for {
-		n, err := reader.Read(buffer)
-		if n > 0 {
-			os.Stdout.Write(buffer[:n])
-		}
-		if err == io.EOF {
-			break
-		}
+	writer := safexz.NewWriter(xzfile)
+	writer.Write([]byte(uncompressed))
+	writer.Close()
+	xzfile.Close()
 
-	}
+	// f, _ := os.Open("/home/christoofar/test.txt.xz")
+
+	// reader := safexz.NewReader(f)
+	// buffer := make([]byte, 1024)
+	// for {
+	// 	n, err := reader.Read(buffer)
+	// 	if n > 0 {
+	// 		os.Stdout.Write(buffer[:n])
+	// 	}
+	// 	if err == io.EOF {
+	// 		break
+	// 	}
+
+	// }
 
 	// var pass uint64
 	// p := message.NewPrinter(language.English)
