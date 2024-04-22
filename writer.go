@@ -7,12 +7,12 @@ import (
 )
 
 type XZWriter struct {
-	io.Writer
-	inputchan  chan []byte
-	outputchan chan []byte
-	started    bool
-	done       chan bool
-	Strategy   CompressionStrategy
+	io.Writer                      // Support the io.Writer interface
+	inputchan  chan []byte         // From /internal, this is where we send the uncompressed data
+	outputchan chan []byte         // From /internal, this is where we receive the compressed data
+	started    bool                // We need to know if we've started the compressor so we can start it only once.
+	done       chan bool           // We need to know when the compressor is done so we can close the output channel.
+	Strategy   CompressionStrategy // The compression strategy to use
 }
 
 // Write takes uncompressed data passed in from the underlying source and yields the LZMA2 compressed data into a byte slice.
@@ -43,6 +43,7 @@ func (w *XZWriter) Write(p []byte) (n int, err error) {
 
 	// All we can do here is acknowledge that we wrote the data.  Which is what the ABI expects you to say here.
 	// The actual compression is happening in a separate go routine.
+	//
 	// God do I hate the ByteReader/ByteWriter pattern, but it's what the ABI expects.
 	return len(p), nil
 }
