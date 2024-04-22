@@ -13,8 +13,15 @@ import (
 	internal "github.com/christoofar/safexz/internal"
 )
 
-func DecompressString(compressedString string) (string, error) {
-	return "", nil
+// This is a convenience function that takes a compressed LZMA data block and converts the result to a string.
+// Note: Strings are heavily dependent on the codepage you use to work with.  If what you are compressing falls
+// outside the scope of the codepage, you probably won't get the same string back.
+func DecompressString(compressedString []byte) (string, error) {
+	decompressed, err := DecompressBytes(compressedString)
+	if err != nil {
+		return "", err
+	}
+	return string(decompressed), nil
 }
 
 func DecompressBytes(compressedBytes []byte) ([]byte, error) {

@@ -133,6 +133,47 @@ func TestCompressToMemoryDecompressToBytes(t *testing.T) {
 	os.Remove("test.txt")
 }
 
+func TestCompressToMemoryDecompressToString(t *testing.T) {
+	// Create a test file
+	f, err := os.Create("test.txt")
+	if err != nil {
+		t.Errorf("Error creating test file: %v", err)
+	}
+	// Write 1000 "Hello, World!" strings to the file
+	for i := 0; i < 1000; i++ {
+		f.WriteString("Hello, World! ")
+	}
+	f.Close()
+
+	// Compress the file
+	compressedData, err := CompressFileToMemory("test.txt")
+	if err != nil {
+		t.Errorf("Error compressing file: %v", err)
+	}
+	if len(compressedData) == 0 {
+		t.Errorf("Compressed data is empty")
+	}
+	if len(compressedData) != 140 {
+		t.Error("Compressed data is not 140 bytes, it is", len(compressedData))
+	}
+
+	// Decompress the data
+	decompressedString, err := DecompressString(compressedData)
+	if err != nil {
+		t.Errorf("Error decompressing data: %v", err)
+	}
+	if len(decompressedString) == 0 {
+		t.Errorf("Decompressed data is empty")
+	}
+	if len(decompressedString) != 14000 {
+		t.Error("Decompressed data is not 14000 bytes, it is", len(decompressedString))
+	}
+
+	// Clean up
+	os.Remove("test.txt")
+
+}
+
 // TestCompressToFileDecompressToMemory tests the CompressToFile and DecompressToMemory functions together.
 // Yes, DecompressBytes is sitting right there, but decomp to memory is a convenience function so you don't have
 // call os.Open yourself.
