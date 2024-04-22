@@ -1,5 +1,9 @@
 # Development Log
 
+## Trunk.io testing
+
+I installed [trunk.io](https://trunk.io) which is supposed to take care of the complex mess of code/style linters out there.  I have no idea if the thing will even work right, so I might remove it later if all it does is scream nonsense at me.
+
 ## Apr 21 2024
 
 Remind me to tell you how much I really dislike the `ByteReader`/`ByteWriter` pattern, [as manifested](https://gist.github.com/christoofar/29e8a7edda716642c11934dfba170c3c) in `io.Reader`/`io.Writer` in Go.  It's nasty.  No, not the Go implementation of the pattern.  It's the pattern itself.  I hate it.   For fun you can read my screaming in `writer.go`
