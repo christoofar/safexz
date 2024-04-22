@@ -30,8 +30,10 @@ func (r *XZReader) Read(p []byte) (n int, err error) {
 				r.inputchan <- data[:n]
 			}
 		}()
-		// Start the decompressor
-		internal.DecompressIn(r.inputchan, r.outputchan)
+		go func() {
+			// Start the decompressor
+			internal.DecompressIn(r.inputchan, r.outputchan)
+		}()
 		r.started = true
 	}
 	// Get a 1024-byte block of data from the decompressor.  Read has to be called again to get the next block.

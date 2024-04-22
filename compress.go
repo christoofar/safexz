@@ -4,6 +4,7 @@
 package safexz
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"os"
@@ -12,6 +13,7 @@ import (
 	internal "github.com/christoofar/safexz/internal"
 )
 
+// CompressSTring compresses a string using the xz format and returns the compressed string.
 func CompressString(s string, strategy ...CompressionStrategy) (string, error) {
 	use_strategy := CompressionMulti
 	if len(strategy) > 0 {
@@ -21,7 +23,10 @@ func CompressString(s string, strategy ...CompressionStrategy) (string, error) {
 	readchan := make(chan []byte, 1)
 	writechan := make(chan []byte, 1)
 
-	internal.CompressIn(readchan, writechan, int(use_strategy))
+	var funcerr error = nil
+	go func () {
+		funcerr = internal.CompressIn(readchan, writechan, int(use_strategy))
+	}()
 	go func() {
 		for i := 0; i < len(s); i += internal.MAX_BUF_SIZE {
 			end := i + internal.MAX_BUF_SIZE
@@ -38,9 +43,12 @@ func CompressString(s string, strategy ...CompressionStrategy) (string, error) {
 		compressed += string(data)
 	}
 
-	return compressed, nil
+	return compressed, funcerr
 }
 
+// CompressBytes compresses a byte slice using the xz format and returns the compressed byte slice.  If the byte slice is huge,
+// you may want to consider using XZWriter instead (and change your code to pull the bytes in from a io.Reader rather than a pre-prepared byte slice)
+// The compression process can greatly expand the amount of memory consumed depending on the CompressionStrategy used.
 func CompressBytes(b []byte, strategy ...CompressionStrategy) ([]byte, error) {
 	use_strategy := CompressionMulti
 	if len(strategy) > 0 {
@@ -50,7 +58,10 @@ func CompressBytes(b []byte, strategy ...CompressionStrategy) ([]byte, error) {
 	readchan := make(chan []byte, 1)
 	writechan := make(chan []byte, 1)
 
-	internal.CompressIn(readchan, writechan, int(use_strategy))
+	var funcerr error = nil
+	go func() {
+		funcerr = internal.CompressIn(readchan, writechan, int(use_strategy))
+	}()
 
 	go func() {
 		for i := 0; i < len(b); i += internal.MAX_BUF_SIZE {
@@ -68,9 +79,10 @@ func CompressBytes(b []byte, strategy ...CompressionStrategy) ([]byte, error) {
 		compressed = append(compressed, data...)
 	}
 
-	return compressed, nil
+	return compressed, funcerr
 }
 
+// CompressFile compresses a file using the xz format and writes the compressed data to the output file.  The output file must end with the `.xz` extension.
 func CompressFile(inpath string, outpath string, strategy ...CompressionStrategy) error {
 	use_strategy := CompressionMulti
 	if len(strategy) > 0 {
@@ -79,6 +91,10 @@ func CompressFile(inpath string, outpath string, strategy ...CompressionStrategy
 	return CompressFileWithProgress(inpath, outpath, nil, use_strategy)
 }
 
+// CompressFileWithProgress compresses a file using the xz format and writes the compressed data to the output file.  The output file must end with the `.xz` extension.
+// Your progress callback function that you supply will be called with the number of bytes read and written to the output file.  This is useful for showing progress bars.
+// The first 'uint64' is the number of bytes read from the input file, and the second 'uint64' is the number of bytes written to the output file.  From this you can calculate
+// the percentage of the file that has been compressed, the estimated time remaining, etc.
 func CompressFileWithProgress(inpath string, outpath string, progress func(uint64, uint64), strategy ...CompressionStrategy) error {
 
 	use_strategy := CompressionMulti
@@ -164,10 +180,108 @@ func CompressFileWithProgress(inpath string, outpath string, progress func(uint6
 	return nil
 }
 
-func CompressFileToMemory(path string) ([]byte, error) {
-	return nil, nil
+// CompressFileToMemory compresses a file using the xz format and returns the compressed data
+// as a byte slice.  It can be handy for preparing uncompressed data for transmission over a network.
+func CompressFileToMemory(path string, strategy ...CompressionStrategy) ([]byte, error) {
+
+	use_strategy := CompressionMulti
+	if len(strategy) > 0 {
+		use_strategy = strategy[0]
+	}
+
+	f, err := os.Open(path)
+	if err != nil {
+		return []byte{}, err
+	}
+
+	readchan := make(chan []byte, 1)
+	writechan := make(chan []byte, 1)
+
+	go func() {
+		err := internal.CompressIn(readchan, writechan, int(use_strategy))
+		if err != nil {
+			fmt.Println("Error compressing data:", err)
+		}
+	}()
+
+	readfunc := func() {
+		readbuf := make([]byte, internal.MAX_BUF_SIZE)
+
+		for {
+			bytes, err := f.Read(readbuf)
+			if err != nil { // The EOF has been hit, send the final batch
+				readchan <- readbuf[:bytes]
+				close(readchan)
+				break
+			}
+
+			data := make([]byte, bytes)
+			copy(data, readbuf)
+			readchan <- data
+		}
+	}
+
+	membuffer := bytes.Buffer{}
+
+	go readfunc()
+
+	donewrite := make(chan bool, 1)
+	go func() {
+		for data := range writechan {
+			membuffer.Write(data)
+		}
+		donewrite <- true
+	}()
+	<-donewrite
+
+	return membuffer.Bytes(), nil
 }
 
-func CompressStream(input io.Reader, output io.Writer) error {
+// CompressStream skips a call to io.Copy() by just compressing whatever stream you put in the
+// input reader and writing it to the output writer.
+func CompressStream(input io.Reader, output io.Writer, strategy ...CompressionStrategy) error {
+	use_strategy := CompressionMulti
+	if len(strategy) > 0 {
+		use_strategy = strategy[0]
+	}
+
+	readchan := make(chan []byte, 1)
+	writechan := make(chan []byte, 1)
+
+	go func() {
+		err := internal.CompressIn(readchan, writechan, int(use_strategy))
+		if err != nil {
+			fmt.Println("Error compressing data:", err)
+		}
+	}()
+
+	readfunc := func() {
+		readbuf := make([]byte, internal.MAX_BUF_SIZE)
+
+		for {
+			bytes, err := input.Read(readbuf)
+			if err != nil { // The EOF has been hit, send the final batch
+				readchan <- readbuf[:bytes]
+				close(readchan)
+				break
+			}
+
+			data := make([]byte, bytes)
+			copy(data, readbuf)
+			readchan <- data
+		}
+	}
+
+	go readfunc()
+
+	donewrite := make(chan bool, 1)
+	go func() {
+		for data := range writechan {
+			output.Write(data)
+		}
+		donewrite <- true
+	}()
+	<-donewrite
+
 	return nil
 }
