@@ -42,7 +42,7 @@ On normal VMs `liblzma` will get a very ample working area and you'll see nice I
 
 Made a quick prover to see how the different canned compression strategies pan out.  This is over a puny 6-core dev VM so it will naturally be slow, thus a better comparison of the multithreaded behaviors of `liblzma.so` can be spotted.  Compressing the King James Bible yields these results (The results as they come out are unsorted, so I've resorted them here):
 
-```
+```bash
 christoofar@pop-os:~/src/safexz/cmd/speedtest$ ./speedtest -i ../../test/canterbury-corpus/large/bible.txt 
 Starting compression with CompressionSimpleFast...
 Starting compression with CompressionSimple...
@@ -78,7 +78,7 @@ So there's no savings to be had at all going with the `Max` option when it comes
 
 Single-stream compression algorithms don't lend themselves well to multiprocessing because of a basic way multiprocessing on single-tasks works called `segmentation`.   Segmentation is when you break up an unworked dataset like this:
 
-```
+```bash
 +--------------------+-------------------+-------------------+
 +    Data Part 1     +    Data Part 2    +     Data Part 3   +
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -86,13 +86,13 @@ Single-stream compression algorithms don't lend themselves well to multiprocessi
 Then you would assign coroutines or whole OS process threads to work on all three parts, then stitch the results back into one post-process dataset.
 
 You can segment the data again into sub-sub segments like this if you have lots of resources:
-```
+```bash
 +--------------------+-------------------+-------------------+
 +  Block 1 + Block 2 + Block 3 + Block 4 + Block 5 + Block 6 +
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ```
 Segmentation eliminates the problem of shared cooperative memory and the need to lock sections of memory to prevent collisions, but now you've created areas of the dataset where repetitive data that crosses a block boundary might escape the attention of the compression routine each thread is running:
-```
+```bash
 +--------------------+-------------------+-------------------+
 + ----> [ Repetitive data ] Data Part 2  +     Data Part 3   +
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

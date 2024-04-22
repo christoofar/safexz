@@ -3,7 +3,7 @@ package safexz
 import (
 	"io"
 
-	internal "github.com/christoofar/safexz/internal/common"
+	internal "github.com/christoofar/safexz/internal"
 )
 
 type XZWriter struct {
