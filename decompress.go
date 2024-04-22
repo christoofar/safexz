@@ -24,6 +24,10 @@ func DecompressString(compressedString []byte) (string, error) {
 	return string(decompressed), nil
 }
 
+// DecompressBytes takes a byte slice of compressed LZMA data and returns the decompressed data as a byte slice.  Be careful with this function
+// as it can consume a lot of memory if you are decompressing a large file and you've read the entire file into memory into a byte slice.
+// If you are decompressing a large file, consider using DecompressFile instead or use DecompressStream to decompress the data on the fly which
+// uses much less memory and is more efficient.
 func DecompressBytes(compressedBytes []byte) ([]byte, error) {
 
 	readchan := make(chan []byte, 1)
@@ -50,10 +54,15 @@ func DecompressBytes(compressedBytes []byte) ([]byte, error) {
 
 }
 
+// DecompressFile reads a file from the filesystem and decompresses it to another file on the filesystem.  The input file should end with the `.xz` extension.
 func DecompressFile(input_path, output_path string) error {
-	return nil
+	return DecompressFileWithProgress(input_path, output_path, nil)
 }
 
+// DecompressFileWithProgress reads a file from the filesystem and decompresses it to another file on the filesystem.  The input file should end with the `.xz` extension.
+// Your progress callback function that you supply will be called with the number of bytes read and written to the output file.  This is useful for showing progress bars.
+// The first 'uint64' is the number of bytes read from the input file, and the second 'uint64' is the number of bytes written to the output file.  From this you can calculate
+// the percentage of the file that has been compressed, the estimated time remaining, etc.
 func DecompressFileWithProgress(inpath, outpath string, progress func(uint64, uint64)) error {
 
 	// Check the file extension
@@ -174,8 +183,10 @@ func DecompressFileToMemory(path string) ([]byte, error) {
 	return outputbuf.Bytes(), nil
 }
 
-// DecompressStream skips a call to io.Copy() by just compressing whatever stream you put in the
-// input reader and writing it to the output writer.
+// DecompressStream skips a call to io.Copy() by just decompressing whatever stream you put in the
+// input reader and writing it to the output writer.  Useful when you want to decompress data on the fly
+// from a stream source like a network connection or a websocket.  Note: Neiher CompressStream nor DecompressStream
+// actually use XZReader or XZWriter.  They are just there for the sake of the ABI.
 func DecompressStream(input io.Reader, output io.Writer) error {
 	inputchan := make(chan []byte, 1)
 	outputchan := make(chan []byte, 1)

@@ -13,7 +13,7 @@ import (
 	internal "github.com/christoofar/safexz/internal"
 )
 
-// CompressSTring compresses a string using the xz format and returns the compressed string.
+// CompressString compresses a string using the xz format and returns the compressed string.
 func CompressString(s string, strategy ...CompressionStrategy) (string, error) {
 	use_strategy := CompressionMulti
 	if len(strategy) > 0 {
@@ -47,7 +47,8 @@ func CompressString(s string, strategy ...CompressionStrategy) (string, error) {
 }
 
 // CompressBytes compresses a byte slice using the xz format and returns the compressed byte slice.  If the byte slice is huge,
-// you may want to consider using XZWriter instead (and change your code to pull the bytes in from a io.Reader rather than a pre-prepared byte slice)
+// you may want to consider using CompressFile or CompressStream instead.  The reason is that the compression process can greatly expand the
+// amount of memory consumed depending on the CompressionStrategy used.
 // The compression process can greatly expand the amount of memory consumed depending on the CompressionStrategy used.
 func CompressBytes(b []byte, strategy ...CompressionStrategy) ([]byte, error) {
 	use_strategy := CompressionMulti
@@ -238,7 +239,12 @@ func CompressFileToMemory(path string, strategy ...CompressionStrategy) ([]byte,
 }
 
 // CompressStream skips a call to io.Copy() by just compressing whatever stream you put in the
-// input reader and writing it to the output writer.
+// input reader and writing it to the output writer.  If you hold the input stream open and keep writing to it,
+// this call will block until you close the input stream.  This is useful for compressing data on the fly, such
+// as the case with a logger stream that keeps the most recent events in RAM then shunts new entries off to
+// a goroutine that's keeping a compressed version of it on disk.
+// Note: Neiher CompressStream nor DecompressStream
+// actually use XZReader or XZWriter.  They are just there for the sake of the ABI.
 func CompressStream(input io.Reader, output io.Writer, strategy ...CompressionStrategy) error {
 	use_strategy := CompressionMulti
 	if len(strategy) > 0 {
