@@ -15,7 +15,7 @@ type XZWriter struct {
 	Strategy   CompressionStrategy
 }
 
-// Write writes takes uncompressed data passed in from the underlying source and yields the LZMA2 compressed data into a byte slice.
+// Write takes uncompressed data passed in from the underlying source and yields the LZMA2 compressed data into a byte slice.
 // You must call Close when you are done writing data to the writer to signal to LZMA there is more data coming (if your stream source is a buffer and not sending EOF)
 // otherwise your program will hang.
 func (w *XZWriter) Write(p []byte) (n int, err error) {
