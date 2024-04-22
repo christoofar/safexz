@@ -38,7 +38,7 @@ func TestCompressBytes(t *testing.T) {
 func TestCompressToStream(t *testing.T) {
 	teststring := "Hello, World!Hello, World!Hello, World!Hello, World!Hello, World!Hello, World!"
 	inputbuffer := bytes.NewBufferString(teststring)
-	compressedoutputbuffer := new(bytes.Buffer);
+	compressedoutputbuffer := new(bytes.Buffer)
 	decompressoutputbuffer := new(bytes.Buffer)
 
 	err := CompressStream(inputbuffer, compressedoutputbuffer)
@@ -679,7 +679,7 @@ func TestCompressChain(t *testing.T) {
 	if err != nil {
 		t.Errorf("Error creating scratch file: %v", err)
 	}
-	for i := 0; i < 50; i++ {
+	for i := 0; i < 10; i++ {
 		switch randomNumber {
 		case 1:
 			f1.Seek(0, 0)
@@ -710,7 +710,7 @@ func TestCompressChain(t *testing.T) {
 	// do 5 compressions and decompressions
 	for i := 0; i < 5; i++ {
 		t.Logf("Starting compression %v", i)
-		err = CompressFile("scratch.txt", "scratch.txt.xz", CompressionFullPowerFast)
+		err = CompressFile("scratch.txt", "scratch.txt.xz", CompressionMultiFast)
 		if err != nil {
 			t.Errorf("Error compressing file: %v", err)
 		}

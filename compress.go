@@ -10,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 
+	/* trunk-ignore(golangci-lint/typecheck) */
 	internal "github.com/christoofar/safexz/internal"
 )
 
@@ -24,7 +25,7 @@ func CompressString(s string, strategy ...CompressionStrategy) (string, error) {
 	writechan := make(chan []byte, 1)
 
 	var funcerr error = nil
-	go func () {
+	go func() {
 		funcerr = internal.CompressIn(readchan, writechan, int(use_strategy))
 	}()
 	go func() {

@@ -143,17 +143,17 @@ func DecompressFileWithProgress(inpath, outpath string, progress func(uint64, ui
 // This is useful for small files that you want to decompress and then work with in memory, such as scanning compressed logs.
 func DecompressFileToMemory(path string) ([]byte, error) {
 
-		// Check the file extension
-		extension := filepath.Ext(path)
-		fileExtension := extension[1:]
-		if fileExtension != "xz" {
-			return []byte{}, fmt.Errorf("the input file [%s] should probably have an xz extension, can you go look?", path)
-		}
+	// Check the file extension
+	extension := filepath.Ext(path)
+	fileExtension := extension[1:]
+	if fileExtension != "xz" {
+		return []byte{}, fmt.Errorf("the input file [%s] should probably have an xz extension, can you go look?", path)
+	}
 
-		f, err := os.Open(path)
-		if err != nil {
-			return []byte{}, err
-		}
+	f, err := os.Open(path)
+	if err != nil {
+		return []byte{}, err
+	}
 
 	inputchan := make(chan []byte, 1)
 	outputchan := make(chan []byte, 1)
