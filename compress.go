@@ -9,7 +9,7 @@ import (
 	"os"
 	"path/filepath"
 
-	internal "github.com/christoofar/safexz/internal/common"
+	internal "github.com/christoofar/safexz/internal"
 )
 
 func CompressString(s string, strategy ...CompressionStrategy) (string, error) {

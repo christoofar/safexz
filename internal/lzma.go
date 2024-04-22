@@ -1,15 +1,15 @@
 package internal
 
 /*
-#cgo CFLAGS: -I../lzma/src/liblzma
-#cgo CFLAGS: -I../lzma/src/liblzma/api
-#cgo CFLAGS: -I../lzma/src/liblzma/common
-#cgo CFLAGS: -I../lzma/src/liblzma/check
-#cgo CFLAGS: -I../lzma/src/liblzma/delta
-#cgo CFLAGS: -I../lzma/src/liblzma/lz
-#cgo CFLAGS: -I../lzma/src/liblzma/lzma
-#cgo CFLAGS: -I../lzma/src/liblzma/rangecoder
-#cgo CFLAGS: -I../lzma/src/liblzma/simple
+#cgo CFLAGS: -Ilzma/src/liblzma
+#cgo CFLAGS: -Ilzma/src/liblzma/api
+#cgo CFLAGS: -Ilzma/src/liblzma/common
+#cgo CFLAGS: -Ilzma/src/liblzma/check
+#cgo CFLAGS: -Ilzma/src/liblzma/delta
+#cgo CFLAGS: -Ilzma/src/liblzma/lz
+#cgo CFLAGS: -Ilzma/src/liblzma/lzma
+#cgo CFLAGS: -Ilzma/src/liblzma/rangecoder
+#cgo CFLAGS: -Ilzma/src/liblzma/simple
 #cgo CFLAGS: -DHAVE_ENCODER_LZMA2 -DHAVE_DECODER_LZMA2
 #cgo CFLAGS: -DHAVE_CHECK_CRC32 -DHAVE_CHECK_CRC64
 #cgo CFLAGS: -DHAVE_MF_HC3 -DHAVE_MF_HC4 -DHAVE_MF_BT4
@@ -29,8 +29,8 @@ package internal
 
 #include <stdlib.h>
 #include <string.h>
-#include "../lzma/src/liblzma/api/lzma.h"
-#include "../common/sysdefs.h"
+#include "lzma/src/liblzma/api/lzma.h"
+#include "common/sysdefs.h"
 
 // liblzma requires that the initialization of the stream be done with a C macro, which CGo cannot see.
 // This function will not be called when this package init(), so it is safe to define it here.
