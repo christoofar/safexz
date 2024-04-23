@@ -13,15 +13,22 @@ type XZReader struct {
 	inputchan  chan []byte
 	outputchan chan []byte
 	started    bool
+	done			 chan bool
+	holdover  []byte
 }
 
 // Read reads an LZMA1 or LZMA2 compressed stream from the supplied soure and yields the compressed data into a byte slice.
 func (r *XZReader) Read(p []byte) (n int, err error) {
 	if !r.started {
+		go func() {
+			// Start the decompressor
+			internal.DecompressIn(r.inputchan, r.outputchan)
+		}()
+
 		// Start moving the reader data into the decompressor
 		go func() {
 			for {
-				data := make([]byte, 1024)
+				data := make([]byte, len(p))
 				n, err := r.Reader.Read(data)
 				if err != nil {
 					close(r.inputchan)
@@ -30,17 +37,49 @@ func (r *XZReader) Read(p []byte) (n int, err error) {
 				r.inputchan <- data[:n]
 			}
 		}()
-		go func() {
-			// Start the decompressor
-			internal.DecompressIn(r.inputchan, r.outputchan)
-		}()
+
 		r.started = true
 	}
-	// Get a 1024-byte block of data from the decompressor.  Read has to be called again to get the next block.
+
+	// If there are holdover bytes from the last read, we need to put them in p first.
+	if len(r.holdover) > 0 {
+		n = copy(p, r.holdover)
+		// Shrink the holdover slice by n bytes, from the front of the slice.
+		if n > 0 {
+			r.holdover = r.holdover[n:]
+		}
+		return n, nil
+	}
+
+	// Get data from the decompressor.  Read has to be called again to get the next block.
 	data, ok := <-r.outputchan
+
+	// If there is more data in data than we can fit in p, we need to hold it over for the next read.
+	if len(data) > len(p) {
+		r.holdover = data[len(p):]
+		data = data[:len(p)]
+	}
+
+	// But if less data came out than the size of p, we should try to pull more data from the decompressor.
+	if len(data) < len(p) {
+		limit := len(p) - len(data)	// The amount of data we can still fit in p
+		// Get more data from the decompressor
+		data2, ok := <-r.outputchan
+		if ok {
+			// If there is more data in data2 than we can fit in p, we need to hold it over for the next read.
+			if len(data2) > limit {
+				r.holdover = data2[limit:]
+				data2 = data2[:limit]
+			}
+			// Append data2 to data
+			data = append(data, data2...)
+		}
+	}
+
 	if !ok {
 		return 0, io.EOF
 	}
+
 	n = copy(p, data)
 	return n, nil
 }

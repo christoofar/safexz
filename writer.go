@@ -1,3 +1,7 @@
+// This file contains the XZWriter struct and the Write and Close methods for the XZWriter.
+// It's heavily commented because was ruining my brain trying to marry the simplistic channel of /internal
+// with the ByteReader/ByteWriter pattern of the ABI.  I still don't like it because there's no way to tell if the
+// sender has finished sending data.	You have to send a nil slice to signal the end of the input stream (by calling Close)
 package safexz
 
 import (
@@ -39,6 +43,8 @@ func (w *XZWriter) Write(p []byte) (n int, err error) {
 			}
 			w.done <- true
 		}()
+
+		// Back into the launch context, not the goroutines above.
 		w.started = true // Run-once flag
 	}
 

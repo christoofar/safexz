@@ -162,15 +162,16 @@ func DecompressFileToMemory(path string) ([]byte, error) {
 		internal.DecompressIn(inputchan, outputchan)
 	}()
 
-	readbuf := make([]byte, internal.MAX_BUF_SIZE)
+	go func() {
 	for {
+		readbuf := make([]byte, internal.MAX_BUF_SIZE)
 		bytes, err := f.Read(readbuf)
 		if err != nil {
 			close(inputchan)
 			break
 		}
 		inputchan <- readbuf[:bytes]
-	}
+	}}()
 
 	outputbuf := bytes.Buffer{}
 	for data := range outputchan {
