@@ -13,7 +13,6 @@ type XZReader struct {
 	inputchan  chan []byte
 	outputchan chan []byte
 	started    bool
-	done			 chan bool
 	holdover  []byte
 }
 
