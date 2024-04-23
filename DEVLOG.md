@@ -1,5 +1,23 @@
 # Development Log
 
+## Apr 22 2024 - All Sunny
+
+I've written out all the sunny-side test cases for the direct and indirect (`io.Reader` and `io.Writer`) interface to LZMA.  It is so nice to see this:
+![image](https://github.com/christoofar/safexz/assets/5059144/642c2913-bd6f-40b6-b6d1-d532f3935289)
+
+Alas, sunny-side unit tests are not anywhere near comprehensive testing.   But:
+
+![image](https://github.com/christoofar/safexz/assets/5059144/60e75d9c-3f00-46c8-8fb5-0068f6458d9a)
+
+The sunny-side cases do hit 91% of all the code including 100% of the code statements in the crucial `reader.go` and `writer.go` interface serving the `XZReader` and `XZWriter`.  What remains are the negative cases such as corrupt files.   I don't intend to repeat any of Lasse Collins' tests for `liblzma.so` itself, since his tests are much more complex and have to take into account mixes of filters, which this library is not using.
+
+I did make this [fun little example](https://github.com/christoofar/safexz/blob/main/reader_writer_test.go#L305) of a fixed-blocksize streaming dataset akin to "random access records" from C and Turbo Pascal.  It demonstrates how easy it is with just the Go standard library how you can create your own proprietary binary record format and deal with it in a streaming context.  It doesn't have to be made of fixed-size records, either.  You could define a record marker for variable-sized records, say something like `FF00 AADD` is the record marker, then set a read buffer size of some multiple of 2⁴ and make a skip-scan function that hunts for `0xFF00AADD` on each read cycle.   If it's not found, keep growing a `bytes.Buffer` by merging the set.   When the marker appears, shoot the bytes to a new input channel that a reader goroutine is wating to hear from, say `RecordFound()`, zero out your buffer and continue reading.
+
+Essentially this toolkit lets you create a SAX parser for any binary format you want.
+
+One idea I have to use something like this is with cloud archive storage.   People throw lots of data on cloud hosts and incur storage charges.   Normally they just transfer older data to the cheaper/slower tiers (Amazon Glacier) but generally don't compress much of anything because that raises the requirements for compute costs.   But with `safexz` you can move all the warm/cold storage into `.xz` packed datasets and stream the data out in its compressed form, then do the decompress-scan-filter operation back on-premesis.   If you're using a service like [Wasabi](https://wasabi.com) which doesn't charge you at all for egress but does continue charging you for storage even after you delete the data, you can pack your bytes down before uploading to Wasabi, or you can "waterfall" your data so your hot bytes stay uncompressed, then age-cycle to another bucket using `CompressFast`, then finally to the e-graveyard bucket where you have a Threadripper with 256GB of RAM cranking away packing the data with `CompressFullPowerBetter`.
+
+
 ## Trunk.io testing
 
 I installed [trunk.io](https://trunk.io) which is supposed to take care of the complex mess of code/style linters out there.  I have no idea if the thing will even work right, so I might remove it later if all it does is scream nonsense at me.
