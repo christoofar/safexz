@@ -202,7 +202,7 @@ originalmem, _ := os.ReadFile("test/canterbury-corpus/large/bible.txt")
 	}
 	reader := NewReader(osfile)
 	for {
-		buffer := make([]byte, 1024)  // Ridiculously small buffer read buffer to exercise the holdover code in XZReader
+		buffer := make([]byte, 3)  // Ridiculously small buffer read buffer to exercise the holdover code in XZReader
 		n, err := reader.Read(buffer)
 		if err != nil {
 			break
