@@ -2,6 +2,7 @@ package safexz
 
 import (
 	"bytes"
+	"encoding/binary"
 	"io"
 	"net/http"
 	"os"
@@ -297,4 +298,62 @@ func TestXZWriterDownloadOverTheInternet(t *testing.T) {
 
 	os.Remove("test.jpg.xz")
 	os.Remove("test.jpg")
+}
+
+// This is to prove that you can parse out data as XZReader is decompressing it.  We'll do it with a fixed structure, but
+// you can make your own binary format and read the datablocks for the record markers.
+func TestXZReadWriteAndXZDatabase(t *testing.T) {
+
+	type Record struct {
+		RecordID int64
+		Name [10]byte   // Strings must be fixed length
+	}
+
+	// Create a database of records
+	records := []Record{
+		{1, [10]byte{'A', 'l', 'i', 'c', 'e'}},
+		{2, [10]byte{'B', 'o', 'b', 'b', 'y'}},
+	}
+
+	// Write the records to a file
+	f, err := os.Create("test.db.xz")
+	if err != nil {
+		t.Error("Error creating compressed file:", err)
+	}
+	defer f.Close()
+
+	writer := NewWriter(f)
+	for _, record := range records {
+		binary.Write(writer, binary.LittleEndian, &record)
+	}
+	writer.Close()
+
+	// Read the records from the file
+	f, err = os.Open("test.db.xz")
+	if err != nil {
+		t.Error("Error opening compressed file:", err)
+	}
+	defer f.Close()
+
+	// Read the records from the file
+	retrievedRecords := []Record{}
+	reader := NewReader(f)
+	for {
+		record := Record{}
+		err = binary.Read(reader, binary.LittleEndian, &record)
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			t.Error("Error reading record:", err)
+		}
+		retrievedRecords = append(retrievedRecords, record)
+		t.Log("Record:", record)
+	}
+	reader.Close()
+
+	// Compare the records
+	assert.Equal(t, records, retrievedRecords, "Records do not match.")
+
+
 }
