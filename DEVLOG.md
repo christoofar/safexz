@@ -3,6 +3,7 @@
 ## Apr 22 2024 - All Sunny
 
 I've written out all the sunny-side test cases for the direct and indirect (`io.Reader` and `io.Writer`) interface to LZMA.  It is so nice to see this:
+
 ![image](https://github.com/christoofar/safexz/assets/5059144/642c2913-bd6f-40b6-b6d1-d532f3935289)
 
 Alas, sunny-side unit tests are not anywhere near comprehensive testing.   But:
