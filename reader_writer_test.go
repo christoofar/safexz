@@ -348,7 +348,6 @@ func TestXZReadWriteAndXZDatabase(t *testing.T) {
 	}
 	defer f.Close()
 
-	// Read the records from the file
 	retrievedRecords := []Record{}
 	reader := NewReader(f)
 	for {
