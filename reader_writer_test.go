@@ -3,6 +3,7 @@ package safexz
 import (
 	"bytes"
 	"io"
+	"net/http"
 	"os"
 	"testing"
 
@@ -184,6 +185,7 @@ func TestXZReaderWriter(t *testing.T) {
 }
 
 
+// Test the XZReader with a tiny buffer size.	This is a test to make sure the XZReader can handle tiny buffers.
 func TestXZReaderWeirdCaseTinyBuffers(t *testing.T) {
 	// Let's create a file with 15KB of test data, and create a read buffer of 1 byte
 	// to test the XZReader's ability to handle tiny buffers.
@@ -222,4 +224,77 @@ originalmem, _ := os.ReadFile("test/canterbury-corpus/large/bible.txt")
 
 	// Does bible match the contents of mem?
 	assert.Equal(t, bible, mem.Bytes(), "Decompressed files do not match.")
+}
+
+// Test the XZReader with a weird case of a giant buffer that is also a prime number.  This should catch any off-by-one errors.
+func TestXZReaderWeirdCaseGiantBuffers(t *testing.T) {
+originalmem, _ := os.ReadFile("test/canterbury-corpus/large/bible.txt")
+	err := CompressFile("test/canterbury-corpus/large/bible.txt", "test.txt.xz", CompressionMulti)
+	if err != nil {
+		t.Error("Error compressing file:", err)
+	}
+
+	// Decompress the Bible for comparison
+	mem := bytes.NewBuffer(nil)
+	mem.Grow(len(originalmem))
+	osfile, err := os.Open("test.txt.xz")
+	if err != nil {
+		t.Error("Error opening compressed file:", err)
+	}
+	reader := NewReader(osfile)
+	for {
+		buffer := make([]byte, 16649)  // 16649 is a prime number, which should catch any off-by-one errors in the XZReader
+		n, err := reader.Read(buffer)
+		if err != nil {
+			break
+		}
+		if n > 0 {
+			mem.Write(buffer[:n])
+		}
+	}
+	osfile.Close()
+	println(len(originalmem))
+
+	// Now decompress the file the direct way
+	bible, err := DecompressFileToMemory("test.txt.xz")
+	if err != nil {
+		t.Error("Error decompressing file:", err)
+	}
+
+	// Does bible match the contents of mem?
+	assert.Equal(t, bible, mem.Bytes(), "Decompressed files do not match.")
+}
+
+// Downloads a picture from the internet and compresses it with the XZWriter.
+func TestXZWriterDownloadOverTheInternet(t *testing.T) {
+	// Download a picture into a buffer
+	resp, err := http.Get("https://media.istockphoto.com/id/1453319272/photo/columbus-ohio-usa-skyline-on-the-scioto-river.jpg?s=2048x2048&w=is&k=20&c=tgQ4HAX-dX7A1XTanxHMrkFOg5Fpa2kW87m96JKLcUM=")
+
+	if err != nil {
+		t.Error("Error downloading image:", err)
+	}
+	defer resp.Body.Close()
+
+	// Compress the image
+	f, err := os.Create("test.jpg.xz")
+	if err != nil {
+		t.Error("Error creating compressed file:", err)
+	}
+	defer f.Close()
+	compressedImageWriter := NewWriter(f)
+	_, err = io.Copy(compressedImageWriter, resp.Body)
+	if err != nil {
+		t.Error("Error compressing image:", err)
+	}
+
+	compressedImageWriter.Close()
+
+	// Decompress the image
+	err = DecompressFile("test.jpg.xz", "test.jpg")
+	if err != nil {
+		t.Error("Error decompressing image:", err)
+	}
+
+	os.Remove("test.jpg.xz")
+	os.Remove("test.jpg")
 }
