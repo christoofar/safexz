@@ -18,6 +18,12 @@ Essentially this toolkit lets you create a SAX parser for any binary format you 
 
 One idea I have to use something like this is with cloud archive storage.   People throw lots of data on cloud hosts and incur storage charges.   Normally they just transfer older data to the cheaper/slower tiers (Amazon Glacier) but generally don't compress much of anything because that raises the requirements for compute costs.   But with `safexz` you can move all the warm/cold storage into `.xz` packed datasets and stream the data out in its compressed form, then do the decompress-scan-filter operation back on-premesis.   If you're using a service like [Wasabi](https://wasabi.com) which doesn't charge you at all for egress but does continue charging you for storage even after you delete the data, you can pack your bytes down before uploading to Wasabi, or you can "waterfall" your data so your hot bytes stay uncompressed, then age-cycle to another bucket using `CompressFast`, then finally to the e-graveyard bucket where you have a Threadripper with 256GB of RAM cranking away packing the data with `CompressFullPowerBetter`.
 
+Is that plausible?
+
+![image](https://github.com/christoofar/safexz/assets/5059144/297c261f-e425-49dd-8bc4-359545bfa282)
+
+
+For 31 records consisting of a DWORD for the record number and [10]byte array for a name field, that yields 18,500r/s for the `Max` option and 26,500r/s on the `Fast` option.  That's when using a Ryzen 7 and the disk is a high speed m.2 stick.  It certainly isn't anywhere native speed, on my hardware that would be a couple hundred records shy of 600,000r/s.  But the I/O medium is not really that much of a factor here (the writes complete to volatile cache), `LZMA` is just going to demand that CPU.  But you can avoid making this worse by throwing the read byte blocks into concurrency once they are decoded so that way the compression/decompression never lets up.  You don't want to hold the streaming up waiting for a database to chew through a transaction.
 
 ## Trunk.io testing
 
