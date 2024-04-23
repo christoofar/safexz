@@ -1,0 +1,7 @@
+Contributions to safexz are most certainly welcome.
+
+# Guidelines
+
+- Respect interfaces.  If an existing function is not doing the job, it's okay to duplicate the function with alternate parameters / behavior so long as the name indicates what the difference is.
+- I wrote `safexz` as a wrap to prove that you can sandbox C libraries by restricting them to only getting information via Go channels and making them live inside goroutines, because the the stack area is much more compact in a goroutine, that greatly increases the difficulty of a code-injection attack.   By extension that means other programming language bindings that travel through a C binding, like `CPython`, can also be sandboxed this way.   So it's not really interesting to write an extension to `safexz` that directly calls into CGo-exposed functions that does not follow the same pattern.   If you need help with sandboxing, you can certainly complete the proof of your contribution from your fork, send it as a PR and I can wrap the native-Go part from the CGo part.
+- "Please Move Up" tickets.   I think we learned from the XZ Backdoor that drive-by "please move up" tickets will get treated with heavy suspicion.   I don't think Lasse would ever want to break the `liblzma.so` interface as it stands because as a C library it's a good interface.   So `safexz` should compile just fine if you manually move up lzma in your own local.
