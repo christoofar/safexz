@@ -151,7 +151,7 @@ func TestXZReaderWriter(t *testing.T) {
 	assert.Equal(t, original, compare, "Decompressed files do not match.")
 
 
-	// Now compress the file again.  This test case proves that the XZWriter can be re-used.
+	// Now compress the file again.  This test case proves that the XZWriter var can be re-used.
 	writefile, err = os.Create("test2.txt.xz")
 	if err != nil {
 		t.Error("Error creating compressed file:", err)
@@ -182,6 +182,7 @@ func TestXZReaderWriter(t *testing.T) {
 	os.Remove("test2.txt")
 	os.Remove("test2.txt.xz")
 }
+
 
 func TestXZReaderWeirdCaseTinyBuffers(t *testing.T) {
 	// Let's create a file with 15KB of test data, and create a read buffer of 1 byte
