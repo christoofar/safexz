@@ -23,7 +23,7 @@ Is that plausible?
 ![image](https://github.com/christoofar/safexz/assets/5059144/297c261f-e425-49dd-8bc4-359545bfa282)
 
 
-For 31 records consisting of a DWORD for the record number and [10]byte array for a name field, that yields 18,500r/s for the `Max` option and 26,500r/s on the `Fast` option.  That's when using a Ryzen 7 and the disk is a high speed m.2 stick.  It certainly isn't anywhere native speed, on my hardware that would be a couple hundred records shy of 600,000r/s.  But the I/O medium is not really that much of a factor here (the writes complete to volatile cache), `LZMA` is just going to demand that CPU.  But you can avoid making this worse by throwing the read byte blocks into concurrency once they are decoded so that way the compression/decompression never lets up.  You don't want to hold the streaming up waiting for a database to chew through a transaction.
+For 31 records consisting of a DWORD for the record number and `[10]byte` array for a name field, that yields 18,500r/s for the `Max` option and 26,500r/s on the `Fast` option.  That's when using a Ryzen 7 and the disk is a high speed m.2 stick.  It certainly isn't anywhere native speed, on my hardware that would be a couple hundred records shy of 600,000r/s.  But the I/O medium is not really that much of a factor here (the writes complete to volatile cache), `LZMA` is just going to demand that CPU.  But you can avoid making this worse by throwing the read byte blocks into concurrency once they are decoded so that way the compression/decompression never lets up.  You don't want to hold the streaming up waiting for a database to chew through a transaction.
 
 ## Trunk.io testing
 
