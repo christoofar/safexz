@@ -93,7 +93,7 @@ func TestXZReaderArbitraryString(t *testing.T) {
 
 // Complex test case.
 //
-// Test the XZReader and XZWriter together.  This is a simple test to make sure the reader and writer work together.
+// Test the XZReader and XZWriter together.  Ensures the XZReader and XZWriter can work together or with the direct methods.
 // We'll start with loading a test file, compressing it to an .xz file, then read it up with the XZReader and compress it
 // yet again with XZWriter, reassigned to the same in-place variable.
 //
