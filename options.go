@@ -54,16 +54,3 @@ const CompressionFullPowerBetter CompressionStrategy = 10
 // uses a large amount of memory. This option is not recommended for systems with constrained memory
 // resources, and on large files will crowd out other processing on the system.
 const CompressionFullPowerMax CompressionStrategy = 11
-
-// DecompressionStrategy is an enum type for the decompression strategy to use for decoding.
-type DecompressionStrategy int
-
-// DecompressionSimple uses a single thread with not that much demand on memory.
-const DecompressionSimple DecompressionStrategy = 0
-
-// DecompressionMulti (default) uses multiple threads (half the number of available cores) to decompress data.
-const DecompressionMulti DecompressionStrategy = 1
-
-// DecompressionFullPower uses all available cores to decompress data.  This is a faster option but will crowd out other
-// processing.
-const DecompressionFullPower DecompressionStrategy = 2
