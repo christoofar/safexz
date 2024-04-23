@@ -313,6 +313,19 @@ func TestXZReadWriteAndXZDatabase(t *testing.T) {
 	records := []Record{
 		{1, [10]byte{'A', 'l', 'i', 'c', 'e'}},
 		{2, [10]byte{'B', 'o', 'b', 'b', 'y'}},
+		{3, [10]byte{'C', 'h', 'r', 'i', 's'}},
+		{4, [10]byte{'D', 'a', 'v', 'i', 'd'}},
+		{5, [10]byte{'E', 'd', 'w', 'a', 'r', 'd'}},
+		{6, [10]byte{'F', 'r', 'a', 'n', 'k'}},
+		{7, [10]byte{'G', 'a', 'r', 'y'}},
+		{8, [10]byte{'H', 'a', 'r', 'r', 'y'}},
+		{9, [10]byte{'I', 'a', 'n'}},
+		{10, [10]byte{'J', 'a', 'c', 'k'}},
+		{11, [10]byte{'K', 'a', 't', 'e'}},
+		{12, [10]byte{'L', 'a', 'r', 'r', 'y'}},
+		{13, [10]byte{'M', 'a', 'r', 'y'}},
+		{14, [10]byte{'N', 'a', 't', 'e'}},
+		{15, [10]byte{'O', 'l', 'i', 'v', 'e'}},
 	}
 
 	// Write the records to a file
