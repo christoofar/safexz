@@ -368,5 +368,7 @@ func TestXZReadWriteAndXZDatabase(t *testing.T) {
 	// Compare the records
 	assert.Equal(t, records, retrievedRecords, "Records do not match.")
 
+	os.Remove("test.db.xz")
+	os.Remove("test.db")
 
 }
