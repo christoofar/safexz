@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"os"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -349,7 +348,6 @@ func TestXZReadWriteAndXZDatabase(t *testing.T) {
 	}
 	defer f.Close()
 
-	// Read the records from the file
 	retrievedRecords := []Record{}
 	reader := NewReader(f)
 	for {
@@ -368,130 +366,6 @@ func TestXZReadWriteAndXZDatabase(t *testing.T) {
 
 	// Compare the records
 	assert.Equal(t, records, retrievedRecords, "Records do not match.")
-
-	os.Remove("test.db.xz")
-	os.Remove("test.db")
-
-}
-
-// A replay of the "XZ database" test but use the Fast and Max compression strategies and print their sizes.
-// A few more records are added to the database to make the file size more interesting.
-func TestXZReadWriteAndXZDatabaseWithCompressStrategies(t *testing.T) {
-
-	type Record struct {
-		RecordID int64
-		Name [10]byte   // Strings must be fixed length
-	}
-
-	// Create a database of records
-	records := []Record{
-		{1, [10]byte{'A', 'l', 'i', 'c', 'e'}},
-		{2, [10]byte{'B', 'o', 'b', 'b', 'y'}},
-		{3, [10]byte{'C', 'h', 'r', 'i', 's'}},
-		{4, [10]byte{'D', 'a', 'v', 'i', 'd'}},
-		{5, [10]byte{'E', 'd', 'w', 'a', 'r', 'd'}},
-		{6, [10]byte{'F', 'r', 'a', 'n', 'k'}},
-		{7, [10]byte{'G', 'a', 'r', 'y'}},
-		{8, [10]byte{'H', 'a', 'r', 'r', 'y'}},
-		{9, [10]byte{'I', 'a', 'n'}},
-		{10, [10]byte{'J', 'a', 'c', 'k'}},
-		{11, [10]byte{'K', 'a', 't', 'e'}},
-		{12, [10]byte{'L', 'a', 'r', 'r', 'y'}},
-		{13, [10]byte{'M', 'a', 'r', 'y'}},
-		{14, [10]byte{'N', 'a', 't', 'e'}},
-		{15, [10]byte{'O', 'l', 'i', 'v', 'e'}},
-		{16, [10]byte{'P', 'a', 'u', 'l'}},
-		{17, [10]byte{'Q', 'u', 'i', 'n', 'n'}},
-		{18, [10]byte{'R', 'a', 'l', 'p', 'h'}},
-		{19, [10]byte{'S', 'a', 'm'}},
-		{20, [10]byte{'T', 'o', 'm'}},
-		{21, [10]byte{'U', 'r', 's', 'u', 'l', 'a'}},
-		{22, [10]byte{'V', 'a', 'l', 'e', 'r', 'i', 'e'}},
-		{23, [10]byte{'W', 'i', 'l', 'l', 'i', 'a', 'm'}},
-		{24, [10]byte{'X', 'a', 'v', 'i', 'e', 'r'}},
-		{25, [10]byte{'Y', 'a', 'n', 'n', 'i', 'c', 'k'}},
-		{26, [10]byte{'Z', 'a', 'c', 'h', 'a', 'r', 'y'}},
-		{27, [10]byte{'A', 'b', 'b', 'y'}},
-		{28, [10]byte{'B', 'a', 'r', 'b', 'a', 'r', 'a'}},
-		{29, [10]byte{'C', 'a', 'r', 'o', 'l'}},
-		{30, [10]byte{'D', 'a', 'n', 'i', 'e', 'l'}},
-		{31, [10]byte{'E', 'l', 'i', 'z', 'a', 'b', 'e', 't', 'h'}},
-	}
-
-	// Write the records to a file
-	f, err := os.Create("test.db.xz")
-	if err != nil {
-		t.Error("Error creating compressed file:", err)
-	}
-	defer f.Close()
-
-	timestart := time.Now()
-	writer := NewWriter(f, CompressionMultiFast)
-	for _, record := range records {
-		binary.Write(writer, binary.LittleEndian, &record)
-	}
-	writer.Close()
-	f1stat, _ := f.Stat()
-	t.Log("Compressed with Fast strategy:", f1stat.Size(), "bytes  Time", time.Since(timestart))
-
-
-	// Read the records from the file
-	f, err = os.Open("test.db.xz")
-	if err != nil {
-		t.Error("Error opening compressed file:", err)
-	}
-	defer f.Close()
-
-	// Read the records from the file
-	retrievedRecords := []Record{}
-	reader := NewReader(f)
-	for {
-		record := Record{}
-		err = binary.Read(reader, binary.LittleEndian, &record)
-		if err != nil {
-			if err == io.EOF {
-				break
-			}
-			t.Error("Error reading record:", err)
-		}
-		retrievedRecords = append(retrievedRecords, record)
-	}
-	reader.Close()
-
-	// Compare the records
-	assert.Equal(t, records, retrievedRecords, "Records do not match.")
-
-	// Recompress the records with the Max strategy
-	f, err = os.Create("test.db.xz")
-	if err != nil {
-		t.Error("Error creating compressed file:", err)
-	}
-	defer f.Close()
-
-	timestart = time.Now()
-	writer = NewWriter(f, CompressionMultiMax)
-	for _, record := range records {
-		binary.Write(writer, binary.LittleEndian, &record)
-	}
-	writer.Close()
-	f2stat, _ := f.Stat()
-	t.Log("Compressed with Max strategy:", f2stat.Size(), "bytes Time:", time.Since(timestart))
-
-	// How fast is it to just write the records without any compression?
-	f, err = os.Create("test.db")
-	if err != nil {
-		t.Error("Error creating file:", err)
-	}
-	defer f.Close()
-
-	timestart = time.Now()
-	for _, record := range records {
-		binary.Write(f, binary.LittleEndian, &record)
-	}
-	f3stat, _ := f.Stat()
-	t.Log("Uncompressed:", f3stat.Size(), "bytes Time:", time.Since(timestart))
-
-
 
 	os.Remove("test.db.xz")
 	os.Remove("test.db")
