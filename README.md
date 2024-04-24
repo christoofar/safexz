@@ -28,6 +28,14 @@ safexz.CompressStream(networkLogSource, compressedStreamWriter)  // XZWriter is 
 // decompressing as it goes
 safexz.DecompressStream(compressedStream, streamToWriteTo) // XZReader is the reader
 
+// Wrapping an existing reader behind XZReader, which will decompress the xz/lzma stream
+// inside
+myXZreader := safexz.XZReader.NewReader(myCompressedDataReader)  // type XZReader
+
+// Wrapping an existing writer behind XZWriter, so the underlying writer sees and will
+// save or send a valid `xz` data stream
+myXZWriter := safexz.XZWriter.NewWriter(file) // type XZWriter
+
 // Compressing a stream with XZWriter while reading its contents
 	resp, err := http.Get("https://media.istockphoto.com/id/1453319272/photo/columbus-ohio-usa-skyline-on-the-scioto-river.jpg?s=2048x2048&w=is&k=20&c=tgQ4HAX-dX7A1XTanxHMrkFOg5Fpa2kW87m96JKLcUM=")
 
