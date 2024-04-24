@@ -2,7 +2,7 @@
 
 A safe Go interface to `liblzma`, the "xz" compression library.
 
-This is a Go package for compression in the xz / lzma format that provides a safer way to call `liblzma`  without the fear of type-safety issues and simplifies the complexity of lzma-compression options into common uses cases.
+This is a Go package for compression in the xz / lzma format that provides a safer way to call `liblzma`  without the fear of type-safety issues and simplifies the complexity of lzma-compression options into common use cases.
 
 ## Installation
 
