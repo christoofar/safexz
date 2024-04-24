@@ -683,13 +683,55 @@ func TestCompressChain(t *testing.T) {
 		switch randomNumber {
 		case 1:
 			f1.Seek(0, 0)
-			f1.WriteTo(scratch)
+			buf := make([]byte, 4096)
+			for {
+				n, err := f1.Read(buf)
+				if err != nil {
+					if err == io.EOF {
+						break
+					}
+					t.Errorf("Error reading from f1: %v", err)
+				}
+				_, err = scratch.Write(buf[:n])
+				if err != nil {
+					t.Errorf("Error writing to scratch file: %v", err)
+				}
+			}
+			//f1.WriteTo(scratch)  // this forces you to bring Go up to 1.22.1 to get this function
 		case 2:
 			f2.Seek(0, 0)
-			f2.WriteTo(scratch)
+			buf := make([]byte, 4096)
+			for {
+				n, err := f2.Read(buf)
+				if err != nil {
+					if err == io.EOF {
+						break
+					}
+					t.Errorf("Error reading from f2: %v", err)
+				}
+				_, err = scratch.Write(buf[:n])
+				if err != nil {
+					t.Errorf("Error writing to scratch file: %v", err)
+				}
+			}
+			//f2.WriteTo(scratch)
 		case 3:
 			f3.Seek(0, 0)
-			f3.WriteTo(scratch)
+			buf := make([]byte, 4096)
+			for {
+				n, err := f3.Read(buf)
+				if err != nil {
+					if err == io.EOF {
+						break
+					}
+					t.Errorf("Error reading from f3: %v", err)
+				}
+				_, err = scratch.Write(buf[:n])
+				if err != nil {
+					t.Errorf("Error writing to scratch file: %v", err)
+				}
+			}
+			//f3.WriteTo(scratch)
 		}
 		randomNumber = rand.Intn(3) + 1
 	}
