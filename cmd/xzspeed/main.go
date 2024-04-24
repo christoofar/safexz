@@ -1,5 +1,4 @@
-// Package main provides the entry point for the speedtest command.  Speedtest will take an input file
-// and run it through the compression and decompression functions in safexz, measuring the time it takes.
+// xzspeed is a command line utility for testing the performance of the safexz compression library.
 package main
 
 import (
@@ -16,7 +15,7 @@ func help(s string) error {
 		println(s)
 		println()
 	}
-	println("Speedtest is a command line utility for testing the performance of the safexz compression library.")
+	println("xzspeed is a command line utility for testing the performance of the safexz compression library.")
 	println("Usage: speedtest -i <input file>")
 	println("Options:")
 	println("  -i, --input <input file>  The path to the input file")
