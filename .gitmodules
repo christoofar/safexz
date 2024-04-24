@@ -1,6 +1,3 @@
-[submodule "internal/lzma"]
-	path = internal/lzma
-	url = https://git.tukaani.org/xz.git
 [submodule "vendorc/xz"]
 	path = vendorc/xz
 	url = http://git.tukaani.org/xz.git
