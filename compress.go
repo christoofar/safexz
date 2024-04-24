@@ -1,6 +1,14 @@
-// Description: This file contains the implementation of the compression functions.  These
-// functions are used to compress data using the xz format.  You don't need to worry about
-// the C language bindings, as they are handled in the lzma package.
+// These functions in `compress.go` and `decompress.go` are the primary interfaces to the xz compression and decompression
+// functions.  All these functions call a single stage set of goroutines that handle the setup of `liblzma` and manage the
+// movement of streaming data.
+//
+// Use the `XZReader` and `XZWriter` structs to manage direct streaming of compression and decompression.  Your
+// own code for buffer sized for reads and writes will have no bearing on the internal buffers that liblzma uses, and
+// your own buffer sizes will be respected.
+//
+// Use the CompressionStrategy type to fine-tune the lzma compression strategy used.   The default is CompressionMulti, which
+// is a good balance between speed and compression ratio.   For memory-restricted and single-core systems, use the Simple
+// compression options to reduce the memory requirements of liblzma.
 package safexz
 
 import (
