@@ -22,11 +22,11 @@ myPictureBytes := safexz.CompressFileToMemory("images/monalisa.png", Compression
 
 // Forwarding an uncompressed data stream into a compressed writer stream,
 // compressing as it goes
-safexz.CompressStream(networkLogSource, compressedNetworkArchiveWriter)
+safexz.CompressStream(networkLogSource, compressedStreamWriter)  // XZWriter is the writer
 
 // Forwarding an XZ-compressed stream into an io.Writer stream,
 // decompressing as it goes
-safexz.DecompressStream(compressedStream, streamToWriteTo)
+safexz.DecompressStream(compressedStream, streamToWriteTo) // XZReader is the reader
 
 // Compressing a stream with XZWriter while reading its contents
 	resp, err := http.Get("https://media.istockphoto.com/id/1453319272/photo/columbus-ohio-usa-skyline-on-the-scioto-river.jpg?s=2048x2048&w=is&k=20&c=tgQ4HAX-dX7A1XTanxHMrkFOg5Fpa2kW87m96JKLcUM=")
