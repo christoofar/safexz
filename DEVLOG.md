@@ -1,5 +1,15 @@
 # Development Log
 
+## Apr 23 2024 - The Fun Begins
+
+Playing with retro OSes is a bit of a passion of mine, and [making OS/2 work](https://www.os2museum.com/wp/) on something is certainly always a big challenge.   But this time the goal is to re-discover the past to find out where I need to roll back my bindings and making something new I build work on something old.   Since `lzma` has been around a really long time, I'm thinking I'll at least be able to get as far back as the early 2010s, especially so since I am not calling to use [the BCJ filters](https://en.wikipedia.org/wiki/7z#Pre-processing_filters).
+
+The payoff would be a way to come up with a make script or a vendor-in go utility that can adapt very widely to produce a build target that works on old machines.
+
+Then later, if there's anyone interest in adding BCJ into the mix, we then have a starting point to work from when adding the filter support as a build target dimension.
+
+Rocky Linux is not even a couple years old so I'll clear that one up tonight.
+
 ## Apr 22 2024 - All Sunny
 
 I've written out all the sunny-side test cases for the direct and indirect (`io.Reader` and `io.Writer`) interface to LZMA.  It is so nice to see this:
