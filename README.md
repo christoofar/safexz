@@ -16,13 +16,16 @@ compressedString := safexz.CompressString("Hello World!")
 // Direct-reading a compressed `xz` archive into a decompressed slice of bytes
 myPicture := safexz.DecompressFileToMemory("images/monalisa.png.xz")
 
-// Raising the compression level and asking for all cores to be engaged in compression
+// Raising the compression level and asking for all cores to be
+// engaged in compression
 myPictureBytes := safexz.CompressFileToMemory("images/monalisa.png", CompressionFullPowerBetter)
 
-// Forwarding an uncompressed data stream into a compressed writer stream, compressing as it goes
+// Forwarding an uncompressed data stream into a compressed writer stream,
+// compressing as it goes
 safexz.CompressStream(networkLogSource, compressedNetworkArchiveWriter)
 
-// Forwarding an XZ-compressed stream into an io.Writer stream, decompressing as it goes
+// Forwarding an XZ-compressed stream into an io.Writer stream,
+// decompressing as it goes
 safexz.DecompressStream(compressedStream, streamToWriteTo)
 
 // Compressing a stream with XZWriter while reading its contents
