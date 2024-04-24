@@ -4,11 +4,51 @@
 
 This is a Go package for compression in the xz / lzma format that provides a safer way to call `liblzma` for common use cases without the fear of type-safety issues and utilizes Go's goroutines to protect your project from [unforseen control hijacks](https://research.swtch.com/xz-timeline) from the 5.6.0 and 5.6.1 versions of `liblzma`
 
-## compatibility with older platforms
+# Usage
 
-`liblzma` is still one of the best compression algorithms for compacting data. It has backportage to even OS/2 Warp from the mid-1990s and there is an implementation for nearly every 32-bit-or-better processor.
+```go
+// Compressing a file
+safexz.CompressFile("data/mydata.dat", "data/mydata.xz")
 
-As Go itself is much newer, I should be able to maintain compatibility back to `$TODO: backportage tests :-)`.
+// Compressing a string
+compressedString := safexz.CompressString("Hello World!")
+
+// Direct-reading a compressed `xz` archive into a decompressed slice of bytes
+myPicture := safexz.DecompressFileToMemory("images/monalisa.png.xz")
+
+// Raising the compression level and asking for all cores to be engaged in compression
+myPictureBytes := safexz.CompressFileToMemory("images/monalisa.png", CompressionFullPowerBetter)
+
+// Forwarding an uncompressed data stream into a compressed writer stream, compressing as it goes
+safexz.CompressStream(networkLogSource, compressedNetworkArchiveWriter)
+
+// Forwarding an XZ-compressed stream into an io.Writer stream, decompressing as it goes
+safexz.DecompressStream(compressedStream, streamToWriteTo)
+
+// Compressing a stream with XZWriter while reading its contents
+	resp, err := http.Get("https://media.istockphoto.com/id/1453319272/photo/columbus-ohio-usa-skyline-on-the-scioto-river.jpg?s=2048x2048&w=is&k=20&c=tgQ4HAX-dX7A1XTanxHMrkFOg5Fpa2kW87m96JKLcUM=")
+
+	if err != nil {
+		t.Error("Error downloading image:", err)
+	}
+	defer resp.Body.Close()
+
+	// Compress the image
+	f, err := os.Create("test.jpg.xz")
+	if err != nil {
+		t.Error("Error creating compressed file:", err)
+	}
+	defer f.Close()
+	compressedImageWriter := safexz.NewWriter(f)
+	_, err = io.Copy(compressedImageWriter, resp.Body)
+	if err != nil {
+		t.Error("Error compressing image:", err)
+	}
+
+	compressedImageWriter.Close()
+```
+
+Full API documentation with even more functions than this can be found at [go.dev](https://pkg.go.dev/github.com/christoofar/safexz#pkg-functions)   Please review the Go test cases, as they test over 90% of all the code.
 
 ## xz backdoor
 
