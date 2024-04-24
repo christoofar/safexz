@@ -4,6 +4,21 @@ A safe Go interface to `liblzma`, the "xz" compression library.
 
 This is a Go package for compression in the xz / lzma format that provides a safer way to call `liblzma`  without the fear of type-safety issues and simplifies the complexity of lzma-compression options into common uses cases.
 
+## Installation
+
+Install the `liblzma-dev` package from your favorite package manager.  For Debian/Ubuntu, for instance:
+```bash
+sudo apt install liblzma-dev
+```
+
+then:
+```bash
+go get -u github.com/christoofar/safexz
+```
+
+At runtime you must ensure that `liblzma.so` (UNIX) `liblzma.dll` (MSYS2) can be properly found by your operating system.
+If you're on a Linux distro that has `systemd`, don't worry: you already have `liblzma`.
+
 # Usage
 
 ```go
