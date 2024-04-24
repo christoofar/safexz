@@ -19,6 +19,11 @@ go get -u github.com/christoofar/safexz
 At runtime you must ensure that `liblzma.so` (UNIX) `liblzma.dll` (MSYS2) can be properly found by your operating system.
 If you're on a Linux distro that has `systemd`, don't worry: you already have `liblzma`.
 
+This package uses CGo.  By default, that means your own project must not (at least directly) disable CGo.   If you're willing to
+stick around, my next GitHub project is to demonstrate how you can `CGO_ENABLE=0` but still vendor CGo support back into your program,
+which is a technique you can use to make your program hot-swappable between the `musl` C standard library and the GNU C library.  I
+use this technique to make tiny CGo-supporting containers!
+
 # Usage
 
 ```go
