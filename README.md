@@ -24,7 +24,7 @@ stick around, my next GitHub project is to demonstrate how you can `CGO_ENABLE=0
 which is a technique you can use to make your program hot-swappable between the `musl` C standard library and the GNU C library.  I
 use this technique to make tiny CGo-supporting containers!
 
-# Usage
+## Usage
 
 ```go
 // Compressing a file
