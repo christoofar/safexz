@@ -16,7 +16,7 @@ func help(s string) error {
 		println()
 	}
 	println("xzspeed is a command line utility for testing the performance of the safexz compression library.")
-	println("Usage: speedtest -i <input file>")
+	println("Usage: xzspeed -i <input file>")
 	println("Options:")
 	println("  -i, --input <input file>  The path to the input file")
 	println("  -h, --help                Prints the help message")
