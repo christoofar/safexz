@@ -4,3 +4,9 @@
 [submodule "test/canterbury-corpus"]
 	path = test/canterbury-corpus
 	url = https://github.com/pfalcon/canterbury-corpus.git
+[submodule "vendorc/xz"]
+	path = vendorc/xz
+	url = http://git.tukaani.org/xz.git
+[submodule "vendorc/canterbury-corpus"]
+	path = vendorc/canterbury-corpus
+	url = https://github.com/pfalcon/canterbury-corpus.git
