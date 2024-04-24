@@ -16,14 +16,25 @@ compressedString := safexz.CompressString("Hello World!")
 // Direct-reading a compressed `xz` archive into a decompressed slice of bytes
 myPicture := safexz.DecompressFileToMemory("images/monalisa.png.xz")
 
-// Raising the compression level and asking for all cores to be engaged in compression
+// Raising the compression level and asking for all cores to be
+// engaged in compression
 myPictureBytes := safexz.CompressFileToMemory("images/monalisa.png", CompressionFullPowerBetter)
 
-// Forwarding an uncompressed data stream into a compressed writer stream, compressing as it goes
-safexz.CompressStream(networkLogSource, compressedNetworkArchiveWriter)
+// Forwarding an uncompressed data stream into a compressed writer stream,
+// compressing as it goes
+safexz.CompressStream(networkLogSource, compressedStreamWriter)  // XZWriter is the writer
 
-// Forwarding an XZ-compressed stream into an io.Writer stream, decompressing as it goes
-safexz.DecompressStream(compressedStream, streamToWriteTo)
+// Forwarding an XZ-compressed stream into an io.Writer stream,
+// decompressing as it goes
+safexz.DecompressStream(compressedStream, streamToWriteTo) // XZReader is the reader
+
+// Wrapping an existing reader behind XZReader, which will decompress the xz/lzma stream
+// inside
+myXZreader := safexz.XZReader.NewReader(myCompressedDataReader)  // type XZReader
+
+// Wrapping an existing writer behind XZWriter, so the underlying writer sees and will
+// save or send a valid `xz` data stream
+myXZWriter := safexz.XZWriter.NewWriter(file) // type XZWriter
 
 // Compressing a stream with XZWriter while reading its contents
 	resp, err := http.Get("https://media.istockphoto.com/id/1453319272/photo/columbus-ohio-usa-skyline-on-the-scioto-river.jpg?s=2048x2048&w=is&k=20&c=tgQ4HAX-dX7A1XTanxHMrkFOg5Fpa2kW87m96JKLcUM=")
