@@ -17,7 +17,7 @@ type XZWriter struct {
 }
 
 // Write takes uncompressed data passed in from the underlying source and yields the LZMA2 compressed data into a byte slice.
-// You must call Close when you are done writing data to the writer to signal to LZMA there is more data coming (if your stream source is a buffer and not sending EOF)
+// You must call Close when you are done writing data to the writer to signal to LZMA there will be no more data coming (if your stream source is a buffer and not sending EOF)
 // otherwise your program will hang.
 func (w *XZWriter) Write(p []byte) (n int, err error) {
 	// This if block is a run-once context for the goroutines that will hitch to liblzma.  This is because
