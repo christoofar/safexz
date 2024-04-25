@@ -7,7 +7,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/christoofar/safexz"
+	safexz "github.com/christoofar/safexz"
 )
 
 func help(s string) error {

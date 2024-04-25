@@ -1,6 +1,7 @@
 package safexz
 
 import (
+	"archive/tar"
 	"bytes"
 	"encoding/binary"
 	"io"
@@ -370,4 +371,111 @@ func TestXZReadWriteAndXZDatabase(t *testing.T) {
 	os.Remove("test.db.xz")
 	os.Remove("test.db")
 
+}
+
+
+// Test creating a tar.xz file (the ultimate test).   The tar library is already in the Go
+// standard library, so using a double-writer it should be possible to create a tar.xz file.
+func TestCreateATarXZFile(t *testing.T) {
+
+	// Read test data
+	file, err := os.Open("test/canterbury-corpus/large/bible.txt")
+	if err != nil {
+		t.Error("Error opening file for tar:", err)
+	}
+
+	// Open a tar file to hold the data
+	tarfile := bytes.NewBuffer(nil)
+	if err != nil {
+		t.Error("Error creating tar file:", err)
+	}
+
+	// Create a tar writer
+	tarwriter := tar.NewWriter(tarfile)
+
+	fileinfo, err := file.Stat()
+	if err != nil {
+		t.Error("Error getting file info for tar:", err)
+	}
+
+	header := &tar.Header{
+		Name: "bible.txt",
+		Mode: int64(fileinfo.Mode()),
+		Size: fileinfo.Size(),
+	}
+
+	err = tarwriter.WriteHeader(header)
+	if err != nil {
+		t.Error("Error writing header to tar:", err)
+	}
+
+	io.Copy(tarwriter, file)
+	tarwriter.Close()
+
+	tarxzfile, _ := os.Create("test.tar.xz")
+	err = CompressStream(tarfile, tarxzfile)
+	if err != nil {
+		t.Error("Error compressing tar file:", err)
+	}
+
+	os.Remove("test.tar.xz")
+	os.Remove("test.tar")
+
+
+}
+
+// Read an existing TAR file into a tar.xz file.  This demonstrates streaming
+// through the data.  Use this approach for giant files.
+func TestReadATarFileCreateAnXZFile(t *testing.T) {
+
+	// Read original data data
+	file, err := os.Open("test/canterbury-corpus/large/bible.txt")
+	if err != nil {
+		t.Error("Error opening file for tar:", err)
+	}
+
+	// Open a tar file to hold this data
+	tarfile := bytes.NewBuffer(nil)
+	if err != nil {
+		t.Error("Error creating tar file:", err)
+	}
+
+	// Create a tar writer
+	tarwriter := tar.NewWriter(tarfile)
+
+	fileinfo, err := file.Stat()
+	if err != nil {
+		t.Error("Error getting file info for tar:", err)
+	}
+
+	header := &tar.Header{
+		Name: "bible.txt",
+		Mode: int64(fileinfo.Mode()),
+		Size: fileinfo.Size(),
+	}
+
+	err = tarwriter.WriteHeader(header)
+	if err != nil {
+		t.Error("Error writing header to tar:", err)
+	}
+
+	io.Copy(tarwriter, file)
+	tarwriter.Close()
+	os.WriteFile("test.tar", tarfile.Bytes(), 0644)  // Put this on disk.
+
+	// Now start streaming the tar file off the disk
+	newtarfile, err := os.Open("test.tar")
+	if err != nil {
+		t.Error("Error opening tar file:", err)
+	}
+
+	tarxzfile, _ := os.Create("test.tar.xz")
+	err = CompressStream(newtarfile, tarxzfile)
+	if err != nil {
+		t.Error("Error compressing tar file:", err)
+	}
+	tarxzfile.Close()
+
+	os.Remove("test.tar.xz")
+	os.Remove("test.tar")
 }
