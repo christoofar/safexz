@@ -226,6 +226,8 @@ originalmem, _ := os.ReadFile("test/canterbury-corpus/large/bible.txt")
 
 	// Does bible match the contents of mem?
 	assert.Equal(t, bible, mem.Bytes(), "Decompressed files do not match.")
+
+	os.Remove("test.txt.xz")
 }
 
 // Test the XZReader with a weird case of a giant buffer that is also a prime number.  This should catch any off-by-one errors.
@@ -265,6 +267,8 @@ originalmem, _ := os.ReadFile("test/canterbury-corpus/large/bible.txt")
 
 	// Does bible match the contents of mem?
 	assert.Equal(t, bible, mem.Bytes(), "Decompressed files do not match.")
+
+	os.Remove("test.txt.xz")
 }
 
 // Downloads a picture from the internet and compresses it with the XZWriter.
