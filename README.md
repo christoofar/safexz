@@ -24,6 +24,44 @@ stick around, my next GitHub project is to demonstrate how you can `CGO_ENABLE=0
 which is a technique you can use to make your program hot-swappable between the `musl` C standard library and the GNU C library.  I
 use this technique to make tiny CGo-supporting containers!
 
+## Installation on Windows
+
+The easiest way to getting this done is to use [MSYS2](https://www.msys2.org).  You will be compiling your Go program with CGo
+using the GCC compiler that is in MinGW64 (which comes with MSYS2).
+
+After installing MSYS2, issue:
+
+```
+pacman -S base-devel mingw-w64-x86_64-lzma
+```
+
+Open a MinGW64 command prompt and run `nano /etc/profile` and add the approprite paths to the go compiler at the bottom of this file.  In my case I did this:
+```
+export GOPATH="/c/Users/chris/go"
+export PATH="/go/bin:${PATH}:${GOPATH}/bin"
+```
+
+Restart your machine so all the paths can be found.
+
+If you are using Visual Studio Code as your compiler, it can help to make MSYS2 your default terminal program instead of Powershell.  Go to File -> Preferences -> Settings
+and in settings.json incorporate this into your vscode settings:
+
+```
+"terminal.integrated.profiles.windows": {
+    "MSYS2": {
+        "path": "C:\\msys64\\usr\\bin\\bash.exe",
+        "args": ["--login", "-i"],
+        "env": {
+            "MSYSTEM": "MINGW64",
+            "CHERE_INVOKING": "1"
+        }
+    }
+},
+"terminal.integrated.defaultProfile.windows": "MSYS2"
+```
+
+Restart `vscode`.   Now you should be able to compile your Go program that uses this library.
+
 ## Usage
 
 ```go
