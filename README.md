@@ -66,7 +66,12 @@ and in `settings.json` incorporate this into your vscode settings:
 "terminal.integrated.defaultProfile.windows": "MSYS2"
 ```
 
-Restart `vscode`.   Now you should be able to compile your Go program that uses this library.
+Restart `vscode`.   Now you should be able to compile your Go program that uses this library.  Incorporate it
+into your Go project: 
+
+```
+go get -u github.com/christoofar/safexz
+```
 
 ### Eliminating the MSYS2 dependency for Windows
 
