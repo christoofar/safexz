@@ -32,7 +32,7 @@ using the GCC compiler that is in MinGW64 (which comes with MSYS2).
 After installing MSYS2, issue:
 
 ```
-pacman -S base-devel mingw-w64-x86_64-lzma
+pacman -S base-devel git mingw-w64-x86_64-gcc mingw-w64-x86_64-lzma
 ```
 
 Open a MinGW64 command prompt and run `nano /etc/profile` and add the approprite paths to the go compiler at the bottom of this file.  In my case I did this:
