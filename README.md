@@ -50,7 +50,7 @@ ln -s /c/Program\ Files/Go /go
 Restart your machine so all the paths can be found.   Open a MinGW64 command prompt and try `go version` to make sure the Go compiler is reachable.
 
 If you are using Visual Studio Code as your IDE, it can help to make MSYS2 your default terminal program instead of Powershell.  Go to File -> Preferences -> Settings
-and in settings.json incorporate this into your vscode settings:
+and in `settings.json` incorporate this into your vscode settings:
 
 ```
 "terminal.integrated.profiles.windows": {
