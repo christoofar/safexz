@@ -41,7 +41,13 @@ export GOPATH="/c/Users/chris/go"
 export PATH="/go/bin:${PATH}:${GOPATH}/bin"
 ```
 
-Restart your machine so all the paths can be found.
+The `/go/bin` folder should be going to your `go.exe` compiler.   What I did to make this easier is symlink the default Go for Windows bin folder to `/go` like this:
+
+```
+ln -s /c/Program\ Files/Go /go
+```
+
+Restart your machine so all the paths can be found.   Open a MinGW64 command prompt and try `go version` to make sure the Go compiler is reachable.
 
 If you are using Visual Studio Code as your compiler, it can help to make MSYS2 your default terminal program instead of Powershell.  Go to File -> Preferences -> Settings
 and in settings.json incorporate this into your vscode settings:
