@@ -82,6 +82,19 @@ Compile your program this way:
 
 This will statically link the lzma dependency from MSYS2 into your binary.
 
+### Making a Windows binary from Linux/Docker
+
+You don't need Windows to make a Windows binary if you are developing in CGo.   To do this, you need the MinGW64 GCC compiler:
+```
+sudo apt-get install gcc-multilib
+sudo apt-get install gcc-mingw-w64
+```
+
+Then to build, just pass along the env setting to use the MinGW compiler
+```
+GOOS=windows GOARCH=amd64 CGO_ENABLED=1 CC=x86_64-w64-mingw32-gcc CXX=x86_64-w64-mingw32-g++ go build -ldflags "-extldflags \"-static\""
+```
+
 ## Usage
 
 ```go
