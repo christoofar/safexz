@@ -62,6 +62,15 @@ and in settings.json incorporate this into your vscode settings:
 
 Restart `vscode`.   Now you should be able to compile your Go program that uses this library.
 
+### Eliminating the MSYS2 dependency for Windows
+
+When you are building your program that uses `safexz` using CGo on Windows, you don't need to install MSYS2 on the target machine.
+Compile your program this way:
+
+`go build -ldflags "-extldflags \"-static\""`
+
+This will statically link the lzma dependency from MSYS2 into your binary.
+
 ## Usage
 
 ```go
