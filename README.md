@@ -29,7 +29,7 @@ use this technique to make tiny CGo-supporting containers!
 The easiest way to getting this done is to use [MSYS2](https://www.msys2.org).  You will be compiling your Go program with CGo
 using the GCC compiler that is in MinGW64 (which comes with MSYS2).
 
-After installing MSYS2, issue:
+After installing MSYS2, open a MinGW64 command prompt and issue:
 
 ```
 pacman -S base-devel git mingw-w64-x86_64-gcc mingw-w64-x86_64-lzma
